@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 
 import { router } from '../../../subjectFactory/index.js'
 
-test('hooks receive info with subject, params, and tokens', async () => {
+test('hooks receive info with subject, params, tokens, and matched values', async () => {
   const r = router({ tokens: ['ns'] })
   const seen = []
 
@@ -21,14 +21,34 @@ test('hooks receive info with subject, params, and tokens', async () => {
   const { info: resultInfo } = await r.request({ subject: 'app.metric.42' })
   const expectedParams = { ns: 'app', kind: 'metric', id: '42' }
   const expectedTokens = ['ns', 'kind', 'id']
+  const expectedValues = { ns: 'app' }
 
   assert.equal(seen.length, 4)
   for (const { info } of seen) {
     assert.equal(info.subject, 'app.metric.42')
     assert.deepEqual(info.params, expectedParams)
     assert.deepEqual(info.tokens, expectedTokens)
+    assert.deepEqual(info.values, expectedValues)
     assert.equal(info, resultInfo)
   }
+})
+
+test('info.values contains only route token values that matched the winning route', async () => {
+  const r = router({ tokens: ['ns'] })
+
+  r.route({ ns: 'app' }, {
+    tokens: ['kind', 'id'],
+    children: [[
+      { ns: 'app', kind: 'metric' },
+      { handler: () => 'ok' }
+    ]]
+  })
+
+  const { info } = await r.request({ subject: 'app.metric.42' })
+
+  assert.deepEqual(info.params, { ns: 'app', kind: 'metric', id: '42' })
+  assert.deepEqual(info.tokens, ['ns', 'kind', 'id'])
+  assert.deepEqual(info.values, { ns: 'app', kind: 'metric' })
 })
 
 test('info is enriched with stage/index/fn for each hook call', async () => {

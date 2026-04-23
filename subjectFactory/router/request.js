@@ -13,7 +13,7 @@ export async function handleRequest(arg = {}, state) {
 
   const { params, extParts } = parseSubject(subject, tokens)
   const baseLen = tokens.length
-  const info = { subject, params, tokens: tokens.slice() }
+  const info = { subject, params, tokens: tokens.slice(), values: {} }
   const ctx = state.context
   const rootCtx = state.context
 
@@ -27,8 +27,8 @@ export async function handleRequest(arg = {}, state) {
     info.fn = getFnName(fn)
   }
 
-  const best = { score: -1, handlers: [], decode: [], pre: [], post: [], onDecodeErr: [], onPreErr: [], onPostErr: [], onHandlerErr: [], onErr: [], paramsExt: {}, extSeq: [] }
-  const collectBest = (node, baseStartIndex, matchedCount, extSeq, extIdx, paramsExt) => {
+  const best = { score: -1, handlers: [], decode: [], pre: [], post: [], onDecodeErr: [], onPreErr: [], onPostErr: [], onHandlerErr: [], onErr: [], values: {}, paramsExt: {}, extSeq: [] }
+  const collectBest = (node, baseStartIndex, matchedCount, matchedValues, extSeq, extIdx, paramsExt) => {
     if (!node) return
     const handlers = normalizeHandlers(node.$handlers ?? node.$handler)
     if (handlers.length > 0) {
@@ -43,6 +43,7 @@ export async function handleRequest(arg = {}, state) {
         best.onPostErr = Array.isArray(node.$onPostError) ? node.$onPostError : []
         best.onHandlerErr = Array.isArray(node.$onHandlerError) ? node.$onHandlerError : []
         best.onErr = Array.isArray(node.$onError) ? node.$onError : []
+        best.values = matchedValues ? { ...matchedValues } : {}
         best.paramsExt = paramsExt ? { ...paramsExt } : {}
         const seqHere = (Array.isArray(node.$tokensExt) && node.$tokensExt.length > 0)
           ? (extSeq && extSeq.length > 0 ? extSeq.concat(node.$tokensExt) : node.$tokensExt.slice())
@@ -56,7 +57,7 @@ export async function handleRequest(arg = {}, state) {
       if (!bucket) continue
       const val = String(params[t])
       if (Object.prototype.hasOwnProperty.call(bucket, val)) {
-        collectBest(bucket[val], i + 1, matchedCount + 1, extSeq, extIdx, paramsExt)
+        collectBest(bucket[val], i + 1, matchedCount + 1, { ...(matchedValues || {}), [t]: val }, extSeq, extIdx, paramsExt)
       }
     }
     if (baseStartIndex >= baseLen) {
@@ -73,15 +74,16 @@ export async function handleRequest(arg = {}, state) {
             const child = bucket[String(v)]
             const nextParamsExt = { ...(paramsExt || {}) }
             if (v !== undefined) nextParamsExt[t] = String(v)
-            collectBest(child, baseLen, matchedCount + 1, seq, nextIdx + 1, nextParamsExt)
+            collectBest(child, baseLen, matchedCount + 1, { ...(matchedValues || {}), [t]: String(v) }, seq, nextIdx + 1, nextParamsExt)
           }
         }
       }
     }
   }
-  collectBest(trie, 0, 0, [], 0, {})
+  collectBest(trie, 0, 0, {}, [], 0, {})
 
   if (best.handlers.length > 0) {
+    info.values = { ...best.values }
     const extSeq = Array.isArray(best.extSeq) ? best.extSeq : []
     if (extSeq.length > 0) {
       info.tokens = info.tokens.concat(extSeq)
