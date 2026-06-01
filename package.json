@@ -13,7 +13,8 @@
     "./create/basic": "./subjectFactory/create/basic.js",
     "./create/telemetry": "./subjectFactory/create/telemetry.js",
     "./router": "./subjectFactory/router/index.js",
-    "./codes": "./codes.js"
+    "./codes": "./codes.js",
+    "./events/nats": "./events/nats/index.js"
   },
   "sideEffects": false,
   "scripts": {

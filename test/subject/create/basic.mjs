@@ -59,3 +59,36 @@ test('toString matches build', () => {
   assert.equal(String(s), s.build())
 })
 
+test('set treats wildcard tokens as publish placeholders', () => {
+  const s = create()
+    .set({
+      env: '*',
+      ns: 'component-service',
+      tenant: '*',
+      context: '*',
+      channel: 'evt',
+      entity: 'componentInstance',
+      action: 'createDone',
+      version: 'v1',
+      id: '*',
+    })
+    .env('prod')
+
+  assert.equal(s.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+})
+
+test('object init treats wildcard tokens as publish placeholders', () => {
+  const s = create({
+    env: '*',
+    ns: 'component-service',
+    tenant: '*',
+    context: '*',
+    channel: 'evt',
+    entity: 'componentInstance',
+    action: 'createDone',
+    version: 'v1',
+    id: '*',
+  }).env('prod')
+
+  assert.equal(s.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+})

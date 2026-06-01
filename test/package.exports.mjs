@@ -21,6 +21,7 @@ const expectedExportKeys = [
   './create/basic',
   './create/telemetry',
   './router',
+  './events/nats',
   './codes',
 ]
 

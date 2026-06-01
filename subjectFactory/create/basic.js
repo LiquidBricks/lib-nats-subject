@@ -4,6 +4,12 @@ import { SUBJECT_TOKEN_COUNT, SUBJECT_TOKEN_OVERRIDE, SUBJECT_TOKEN_UNKNOWN } fr
 
 const isMissing = (v) => v === undefined || v === null || v === ''
 const norm = (v) => (isMissing(v) ? '_' : String(v))
+const isWildcard = (v) => v === '*'
+const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
+const subjectPatch = (patch) => {
+  if (patch && typeof patch === 'object' && patch[SUBJECT_PATCH]) return patch[SUBJECT_PATCH]
+  return patch
+}
 
 export function create(init = {}) {
   const KEYS = ['env', 'ns', 'tenant', 'context', 'channel', 'entity', 'action', 'version', 'id']
@@ -24,9 +30,13 @@ export function create(init = {}) {
     for (let i = 0; i < KEYS.length; i++) initial[KEYS[i]] = tokens[i]
   } else if (initial == null || typeof initial !== 'object') {
     initial = {}
+  } else {
+    initial = subjectPatch(initial)
   }
 
-  for (const k of KEYS) state[k] = initial[k]
+  for (const k of KEYS) {
+    if (!isWildcard(initial[k])) state[k] = initial[k]
+  }
 
   const ensureSet = (k, v) => {
     if (!KEYS.includes(k)) {
@@ -34,6 +44,8 @@ export function create(init = {}) {
       err.code = SUBJECT_TOKEN_UNKNOWN
       throw err
     }
+    if (isWildcard(v)) return
+
     const cur = state[k]
     const has = cur !== undefined
     if (has && cur !== v) {
@@ -51,7 +63,7 @@ export function create(init = {}) {
   const api = {
     // Generic multi-setter; throws if overriding with a different value
     set(patch = {}) {
-      for (const [k, v] of Object.entries(patch)) ensureSet(k, v)
+      for (const [k, v] of Object.entries(subjectPatch(patch))) ensureSet(k, v)
       return api
     },
     // Individual token setters
