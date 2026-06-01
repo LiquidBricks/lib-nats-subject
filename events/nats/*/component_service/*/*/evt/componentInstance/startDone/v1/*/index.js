@@ -4,15 +4,15 @@ const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
 
 export const events = {
   [SUBJECT_PATCH]: {
-    env: '*',
-    ns: 'component-service',
-    tenant: '*',
-    context: '*',
-    channel: 'evt',
-    entity: 'componentInstance',
-    action: 'startDone',
-    version: 'v1',
-    id: '*',
+    env: "*",
+    ns: "component-service",
+    tenant: "*",
+    context: "*",
+    channel: "evt",
+    entity: "componentInstance",
+    action: "startDone",
+    version: "v1",
+    id: "*",
   },
 }
 
