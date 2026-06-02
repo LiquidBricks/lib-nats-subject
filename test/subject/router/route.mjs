@@ -37,6 +37,25 @@ test('route forbids handler when children exist', () => {
   assert.throws(() => r.route({ a: 'x' }, { handler() { }, children }), (e) => e && e.code === 'ROUTER_ROUTE_HANDLER_FORBIDDEN')
 })
 
+test('empty route values can rely on children for all matching values', async () => {
+  const r = router({ tokens: ['a', 'b'] })
+  function onXY({ info }) {
+    return info.values.a + '.' + info.values.b
+  }
+
+  r.route({}, { children: [[{ a: 'x', b: 'y' }, { handler: onXY }]] })
+
+  const pretty = r.prettyTrie()
+  assert.equal(pretty, [
+    'a=x',
+    '  b=y [leaf:onXY]',
+  ].join('\n'))
+
+  const { info, scope } = await r.request({ subject: 'x.y' })
+  assert.deepEqual(info.values, { a: 'x', b: 'y' })
+  assert.equal(scope[s.scope.result], 'x.y')
+})
+
 test('children are additive and cannot override parent tokens', () => {
   const r = router({ tokens: ['a', 'b', 'c'] })
   function onXYZ({ info }) { }
