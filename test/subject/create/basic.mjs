@@ -59,7 +59,7 @@ test('toString matches build', () => {
   assert.equal(String(s), s.build())
 })
 
-test('set treats wildcard tokens as publish placeholders', () => {
+test('set preserves wildcard tokens for subscribe subjects', () => {
   const s = create()
     .set({
       env: '*',
@@ -74,10 +74,12 @@ test('set treats wildcard tokens as publish placeholders', () => {
     })
     .env('prod')
 
-  assert.equal(s.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+  assert.equal(s.build(), 'prod.component-service.*.*.evt.componentInstance.createDone.v1.*')
+  assert.equal(s.forSubscribe.build(), 'prod.component-service.*.*.evt.componentInstance.createDone.v1.*')
+  assert.equal(s.forPublish.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
 })
 
-test('object init treats wildcard tokens as publish placeholders', () => {
+test('object init preserves wildcard tokens for subscribe subjects', () => {
   const s = create({
     env: '*',
     ns: 'component-service',
@@ -90,5 +92,23 @@ test('object init treats wildcard tokens as publish placeholders', () => {
     id: '*',
   }).env('prod')
 
+  assert.equal(s.build(), 'prod.component-service.*.*.evt.componentInstance.createDone.v1.*')
+  assert.equal(s.forPublish.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+})
+
+test('forPublish can be selected before fluent setters', () => {
+  const s = create({
+    env: '*',
+    ns: 'component-service',
+    tenant: '*',
+    context: '*',
+    channel: 'evt',
+    entity: 'componentInstance',
+    action: 'createDone',
+    version: 'v1',
+    id: '*',
+  }).forPublish.env('prod')
+
+  assert.deepEqual(s.parts(), ['prod', 'component-service', '_', '_', 'evt', 'componentInstance', 'createDone', 'v1', '_'])
   assert.equal(s.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
 })
