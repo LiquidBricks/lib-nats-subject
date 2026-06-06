@@ -14,7 +14,9 @@
     "./create/telemetry": "./subjectFactory/create/telemetry.js",
     "./router": "./subjectFactory/router/index.js",
     "./codes": "./codes.js",
-    "./events/nats": "./events/nats/index.js"
+    "./events/nats": "./events/nats/index.js",
+    "./subject/create/diagnostics": "./subjectFactory/create/diagnostics.js",
+    "./create/diagnostics": "./subjectFactory/create/diagnostics.js"
   },
   "sideEffects": false,
   "scripts": {

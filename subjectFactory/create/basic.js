@@ -66,10 +66,15 @@ export function create(init = {}) {
     if (!has) state[k] = v
   }
 
-  const partsFor = (mode) => KEYS.map((k) => {
-    const value = norm(state[k])
-    return mode === 'publish' && isWildcard(value) ? '_' : value
-  })
+  const partsFor = (mode) => {
+    const out = []
+    for (const k of KEYS) {
+      const value = norm(state[k])
+      out.push(mode === 'publish' && isWildcard(value) ? '_' : value)
+      if (value === '>') break
+    }
+    return out
+  }
 
   let forSubscribe
   let forPublish
