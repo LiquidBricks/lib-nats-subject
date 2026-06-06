@@ -8,7 +8,7 @@ const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
 
 test('NATS event tokens build publish subject with wildcard placeholders as underscores', () => {
 
-  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']).forPublish
+  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']).forPublish()
     .env('prod')
     .build()
 
@@ -29,7 +29,7 @@ test('NATS event tokens build publish subject with wildcard placeholders as unde
 
 test('NATS event tokens can initialize create directly', () => {
 
-  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']).forPublish
+  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']).forPublish()
     .env('prod')
     .build()
 
@@ -38,7 +38,7 @@ test('NATS event tokens can initialize create directly', () => {
 
 test('NATS event export includes startDone and package-level constants', () => {
 
-  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.startDone.v1['*']).forPublish
+  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.startDone.v1['*']).forPublish()
     .env('prod')
     .id('component-instance-1')
     .build()
@@ -51,11 +51,11 @@ test('NATS event export includes startDone and package-level constants', () => {
 test('NATS event export includes command and execution subjects', () => {
 
   assert.equal(
-    createBasicSubject(natsEvents['*'].component_service['*']['*'].cmd.componentInstance.start.v1['*']).forPublish.env('prod').build(),
+    createBasicSubject(natsEvents['*'].component_service['*']['*'].cmd.componentInstance.start.v1['*']).forPublish().env('prod').build(),
     'prod.component-service._._.cmd.componentInstance.start.v1._',
   )
   assert.equal(
-    createBasicSubject(natsEvents['*'].component_service['*']['*'].exec.component.compute_result.v1['*']).forPublish.env('prod').build(),
+    createBasicSubject(natsEvents['*'].component_service['*']['*'].exec.component.compute_result.v1['*']).forPublish().env('prod').build(),
     'prod.component-service._._.exec.component.compute_result.v1._',
   )
 })

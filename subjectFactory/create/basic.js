@@ -93,8 +93,8 @@ export function create(init = {}) {
       action(v) { ensureSet('action', v); return api },
       version(v) { ensureSet('version', v); return api },
       id(v) { ensureSet('id', v); return api },
-      get forSubscribe() { return forSubscribe },
-      get forPublish() { return forPublish },
+      forSubscribe() { return forSubscribe },
+      forPublish() { return forPublish },
       // Materialize
       build,
       toString: build,
