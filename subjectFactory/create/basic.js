@@ -82,6 +82,16 @@ export function create(init = {}) {
   const createApi = (mode) => {
     const parts = () => partsFor(mode)
     const build = () => parts().join('.')
+    const toObject = () => {
+      const out = {}
+      const currentParts = parts()
+      for (let i = 0; i < currentParts.length; i++) {
+        const value = currentParts[i]
+        if (value === '_' || value === '*' || value === '>') continue
+        out[KEYS[i]] = value
+      }
+      return out
+    }
     const api = {
       // Generic multi-setter; throws if overriding with a different value
       set(patch = {}) {
@@ -103,6 +113,7 @@ export function create(init = {}) {
       // Materialize
       build,
       toString: build,
+      toObject,
       // Access normalized parts if needed
       parts,
       // For inspection/testing

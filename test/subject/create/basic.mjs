@@ -112,3 +112,55 @@ test('forPublish can be selected before fluent setters', () => {
   assert.deepEqual(s.parts(), ['prod', 'component-service', '_', '_', 'evt', 'componentInstance', 'createDone', 'v1', '_'])
   assert.equal(s.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
 })
+
+test('toObject returns concrete subscribe route tokens', () => {
+  const path = create({
+    env: '*',
+    ns: 'component-service',
+    tenant: '*',
+    context: '*',
+    channel: 'evt',
+    entity: 'componentInstance',
+    action: 'createDone',
+    version: 'v1',
+    id: '*',
+  })
+    .forSubscribe()
+    .toObject()
+
+  assert.deepEqual(path, {
+    ns: 'component-service',
+    channel: 'evt',
+    entity: 'componentInstance',
+    action: 'createDone',
+    version: 'v1',
+  })
+})
+
+test('toObject reflects publish conversion by omitting publish placeholders', () => {
+  const path = create({
+    env: '*',
+    ns: 'component-service',
+    tenant: '*',
+    context: '*',
+    channel: 'cmd',
+    entity: 'component',
+    action: 'register',
+    version: 'v1',
+    id: '*',
+  })
+    .forPublish()
+    .env('prod')
+    .context('component-agent')
+    .toObject()
+
+  assert.deepEqual(path, {
+    env: 'prod',
+    ns: 'component-service',
+    context: 'component-agent',
+    channel: 'cmd',
+    entity: 'component',
+    action: 'register',
+    version: 'v1',
+  })
+})

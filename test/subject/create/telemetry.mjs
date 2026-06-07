@@ -25,3 +25,9 @@ test('rejects invalid channels and entities', () => {
   assert.throws(() => telemetry.create().metric().entity('span'), (err) => err && err.code === 'SUBJECT_TOKEN_UNKNOWN')
   assert.throws(() => telemetry.create().trace().entity('counter'), (err) => err && err.code === 'SUBJECT_TOKEN_UNKNOWN')
 })
+
+test('telemetry toObject returns router path tokens', () => {
+  assert.deepEqual(telemetry.create().log().forSubscribe().toObject(), { channel: 'log' })
+  assert.deepEqual(telemetry.create().metric().forSubscribe().toObject(), { channel: 'metric' })
+  assert.deepEqual(telemetry.create().trace().forSubscribe().toObject(), { channel: 'trace' })
+})

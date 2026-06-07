@@ -129,6 +129,15 @@ export function create(init = {}) {
   }
 
   const build = () => parts().join('.')
+  const toObject = () => {
+    const out = {}
+    for (const key of ['channel', 'entity', 'version']) {
+      const value = state[key]
+      if (value === undefined || value === null || value === '' || value === '_') continue
+      out[key] = value
+    }
+    return out
+  }
 
   const api = {
     // Setters
@@ -141,9 +150,13 @@ export function create(init = {}) {
     metric() { ensureChannel('metric'); return api },
     trace() { ensureChannel('trace'); return api },
 
+    forSubscribe() { return api },
+    forPublish() { return api },
+
     // Materialize
     build,
     toString: build,
+    toObject,
     parts,
     // Inspect
     get value() { return { ...state } },
