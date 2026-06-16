@@ -45,8 +45,24 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 26 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 28 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
+})
+
+test('NATS event export includes processInjectedComputeResultDone', () => {
+  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.processInjectedComputeResultDone.v1['*']).forPublish()
+    .env('prod')
+    .build()
+
+  assert.equal(subject, 'prod.component-service._._.evt.componentInstance.processInjectedComputeResultDone.v1._')
+})
+
+test('NATS event export includes injectResults', () => {
+  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].cmd.componentInstance.injectResults.v1['*']).forPublish()
+    .env('prod')
+    .build()
+
+  assert.equal(subject, 'prod.component-service._._.cmd.componentInstance.injectResults.v1._')
 })
 
 test('NATS event export includes command and execution subjects', () => {
