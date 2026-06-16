@@ -1,13 +1,13 @@
-import { schema } from './schema.js'
+import { schema } from "./schema.js"
 
-const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
+const SUBJECT_PATCH = Symbol.for("@liquid-bricks/lib-nats-subject.subjectPatch")
 
 export const events = {
   [SUBJECT_PATCH]: {
     env: "*",
     ns: "component-service",
     tenant: "*",
-    context: "agent-gw",
+    context: "agent",
     channel: "exec",
     entity: "component",
     action: "compute_result",
