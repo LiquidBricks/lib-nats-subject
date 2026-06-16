@@ -1,13 +1,7 @@
 import { schema } from './schema.js'
+import { createSubjectPatchFromUrl } from '../../_subjectPatch.js'
 
-const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
-
-export const events = {
-  [SUBJECT_PATCH]: {
-      "root": "tele",
-      "tail": ">"
-  },
-}
+export const events = createSubjectPatchFromUrl(import.meta.url)
 
 export const meta = {
   schema,
