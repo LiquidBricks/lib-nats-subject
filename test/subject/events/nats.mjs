@@ -72,8 +72,8 @@ test('NATS event export includes command and execution subjects', () => {
     'prod.component-service._._.cmd.componentInstance.start.v1._',
   )
   assert.equal(
-    createBasicSubject(natsEvents['*'].component_service['*']['*'].exec.component.compute_result.v1['*']).forPublish().env('prod').build(),
-    'prod.component-service._._.exec.component.compute_result.v1._',
+    createBasicSubject(natsEvents['*'].gateway['*']['*'].cmd.component.compute_function.v1['*']).forPublish().env('prod').build(),
+    'prod.gateway._._.cmd.component.compute_function.v1._',
   )
   assert.equal(
     createBasicSubject(natsEvents["*"].component_service["*"].agent.exec.component.compute_result.v1["*"]).forPublish().env("prod").build(),

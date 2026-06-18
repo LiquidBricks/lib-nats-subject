@@ -134,13 +134,6 @@ export const events = {
           },
           exec: {
             ">": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "exec", "entity": ">"}),
-            component: {
-              compute_result: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "exec", "entity": "component", "action": "compute_result", "version": "v1", "id": "*"}),
-                },
-              },
-            },
             componentAgent: {
               cmdRegisterProvidingAgentsComponent: {
                 v1: {
@@ -165,6 +158,21 @@ export const events = {
               compute_result: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "agent", "channel": "exec", "entity": "component", "action": "compute_result", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    gateway: {
+      "*": {
+        "*": {
+          cmd: {
+            component: {
+              compute_function: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "gateway", "tenant": "*", "context": "*", "channel": "cmd", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
                 },
               },
             },
