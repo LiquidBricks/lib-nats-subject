@@ -93,11 +93,6 @@ export const events = {
           evt: {
             ">": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": ">"}),
             component: {
-              computeResultDone: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "component", "action": "computeResultDone", "version": "v1", "id": "*"}),
-                },
-              },
               registerDone: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "component", "action": "registerDone", "version": "v1", "id": "*"}),
@@ -105,11 +100,6 @@ export const events = {
               },
             },
             componentInstance: {
-              computeResultDone: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "componentInstance", "action": "computeResultDone", "version": "v1", "id": "*"}),
-                },
-              },
               createDone: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "componentInstance", "action": "createDone", "version": "v1", "id": "*"}),
@@ -143,21 +133,12 @@ export const events = {
             },
           },
         },
-        agent: {
+        function_result: {
           evt: {
             component: {
-              computeResultDone: {
+              compute_function: {
                 v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "agent", "channel": "evt", "entity": "component", "action": "computeResultDone", "version": "v1", "id": "*"}),
-                },
-              },
-            },
-          },
-          exec: {
-            component: {
-              compute_result: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "agent", "channel": "exec", "entity": "component", "action": "compute_result", "version": "v1", "id": "*"}),
+                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
                 },
               },
             },
@@ -173,6 +154,32 @@ export const events = {
               compute_function: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "gateway", "tenant": "*", "context": "*", "channel": "cmd", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+          },
+        },
+        function_result: {
+          evt: {
+            component: {
+              compute_function: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "gateway", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    agent: {
+      "*": {
+        "*": {
+          cmd: {
+            component: {
+              compute_function: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "agent", "tenant": "*", "context": "*", "channel": "cmd", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
                 },
               },
             },

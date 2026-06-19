@@ -1,4 +1,4 @@
 export const LABEL = 'lib-nats-subject.events.nats'
 export const SUMMARY = {
-  subjectCount: 28,
+  subjectCount: 27,
 }
