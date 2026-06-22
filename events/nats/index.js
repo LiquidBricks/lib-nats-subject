@@ -138,7 +138,9 @@ export const events = {
             component: {
               compute_function: {
                 v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
+                  data: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "data"}),
+                  gate: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "gate"}),
+                  task: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "task"}),
                 },
               },
             },
