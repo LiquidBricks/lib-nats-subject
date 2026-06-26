@@ -45,7 +45,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 29 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 31 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -111,6 +111,26 @@ test('NATS event export includes component service stream filter subjects', () =
     createBasicSubject(natsEvents['*'].component_service['*']['*'].exec['>']).forSubscribe().env('prod').build(),
     'prod.component-service.*.*.exec.>',
   )
+})
+
+test('NATS event export includes domain fact subjects', () => {
+  assert.equal(
+    createBasicSubject(natsEvents['*'].domain['*']['*'].edge['>']).forSubscribe().env('prod').build(),
+    'prod.domain.*.*.edge.>',
+  )
+  assert.equal(
+    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_data_state.result_computed).forPublish().env('prod').build(),
+    'prod.domain._._.edge.has_data_state.result_computed._._',
+  )
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.has_data_state.result_computed[SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'edge',
+    entity: 'has_data_state',
+    action: 'result_computed',
+  })
 })
 
 test('NATS event export includes diagnostics stream filter subjects', () => {

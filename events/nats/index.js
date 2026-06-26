@@ -148,6 +148,18 @@ export const events = {
         },
       },
     },
+    domain: {
+      "*": {
+        "*": {
+          edge: {
+            ">": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": ">"}),
+            has_data_state: {
+              result_computed: subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "result_computed"}),
+            },
+          },
+        },
+      },
+    },
     gateway: {
       "*": {
         "*": {
