@@ -160,6 +160,13 @@ export const events = {
                 },
               },
             },
+            uses_gate: {
+              result_computed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "uses_gate", "action": "result_computed", "version": "v1", "id": "*"}),
+                },
+              },
+            },
             has_task_state: {
               result_computed: {
                 v1: {

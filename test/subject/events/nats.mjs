@@ -134,9 +134,24 @@ test('NATS event export includes domain fact subjects', () => {
     id: '*',
   })
   assert.equal(
+    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.uses_gate.result_computed.v1['*']).forPublish().env('prod').build(),
+    'prod.domain._._.edge.uses_gate.result_computed.v1._',
+  )
+  assert.equal(
     createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_task_state.result_computed.v1['*']).forPublish().env('prod').build(),
     'prod.domain._._.edge.has_task_state.result_computed.v1._',
   )
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.uses_gate.result_computed.v1['*'][SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'edge',
+    entity: 'uses_gate',
+    action: 'result_computed',
+    version: 'v1',
+    id: '*',
+  })
   assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.has_task_state.result_computed.v1['*'][SUBJECT_PATCH], {
     env: '*',
     ns: 'domain',
