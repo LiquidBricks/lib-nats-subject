@@ -119,10 +119,10 @@ test('NATS event export includes domain fact subjects', () => {
     'prod.domain.*.*.edge.>',
   )
   assert.equal(
-    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_data_state.result_computed).forPublish().env('prod').build(),
-    'prod.domain._._.edge.has_data_state.result_computed._._',
+    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_data_state.result_computed.v1['*']).forPublish().env('prod').build(),
+    'prod.domain._._.edge.has_data_state.result_computed.v1._',
   )
-  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.has_data_state.result_computed[SUBJECT_PATCH], {
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.has_data_state.result_computed.v1['*'][SUBJECT_PATCH], {
     env: '*',
     ns: 'domain',
     tenant: '*',
@@ -130,6 +130,8 @@ test('NATS event export includes domain fact subjects', () => {
     channel: 'edge',
     entity: 'has_data_state',
     action: 'result_computed',
+    version: 'v1',
+    id: '*',
   })
 })
 

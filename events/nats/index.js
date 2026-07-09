@@ -154,7 +154,11 @@ export const events = {
           edge: {
             ">": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": ">"}),
             has_data_state: {
-              result_computed: subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "result_computed"}),
+              result_computed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "result_computed", "version": "v1", "id": "*"}),
+                },
+              },
             },
           },
         },

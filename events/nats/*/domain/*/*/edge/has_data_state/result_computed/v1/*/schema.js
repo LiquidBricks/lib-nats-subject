@@ -1,6 +1,6 @@
 export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "events.nats.*.domain.*.*.edge.has_data_state.result_computed",
+  "title": "events.nats.*.domain.*.*.edge.has_data_state.result_computed.v1.*",
   "type": "object",
   "additionalProperties": true
 }
