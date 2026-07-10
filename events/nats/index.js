@@ -175,6 +175,15 @@ export const events = {
               },
             },
           },
+          vertex: {
+            gateInstanceRef: {
+              result_computed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "vertex", "entity": "gateInstanceRef", "action": "result_computed", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+          },
         },
       },
     },

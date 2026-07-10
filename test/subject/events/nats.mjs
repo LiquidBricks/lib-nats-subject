@@ -45,7 +45,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 31 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 32 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -141,6 +141,10 @@ test('NATS event export includes domain fact subjects', () => {
     createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_task_state.result_computed.v1['*']).forPublish().env('prod').build(),
     'prod.domain._._.edge.has_task_state.result_computed.v1._',
   )
+  assert.equal(
+    createBasicSubject(natsEvents['*'].domain['*']['*'].vertex.gateInstanceRef.result_computed.v1['*']).forPublish().env('prod').build(),
+    'prod.domain._._.vertex.gateInstanceRef.result_computed.v1._',
+  )
   assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.uses_gate.result_computed.v1['*'][SUBJECT_PATCH], {
     env: '*',
     ns: 'domain',
@@ -159,6 +163,17 @@ test('NATS event export includes domain fact subjects', () => {
     context: '*',
     channel: 'edge',
     entity: 'has_task_state',
+    action: 'result_computed',
+    version: 'v1',
+    id: '*',
+  })
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].vertex.gateInstanceRef.result_computed.v1['*'][SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'vertex',
+    entity: 'gateInstanceRef',
     action: 'result_computed',
     version: 'v1',
     id: '*',
