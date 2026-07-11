@@ -10,16 +10,25 @@ const isFn = (fn) => typeof fn === 'function'
 
 const createHookBundle = () => ({
   decode: [],
+  decodeRouteCtx: [],
   pre: [],
+  preRouteCtx: [],
   post: [],
+  postRouteCtx: [],
   onDecodeErr: [],
+  onDecodeErrRouteCtx: [],
   onPreErr: [],
+  onPreErrRouteCtx: [],
   onPostErr: [],
+  onPostErrRouteCtx: [],
   onHandlerErr: [],
+  onHandlerErrRouteCtx: [],
   onErr: [],
+  onErrRouteCtx: [],
 })
 
 const isPlainObject = (val) => val && typeof val === 'object' && !Array.isArray(val)
+const routeCtxForHooks = (hooks, routeCtx) => hooks.map(() => routeCtx)
 
 const mergeHookResults = (results) => {
   let merged
@@ -68,16 +77,36 @@ const asHookList = (val, allowSingle = false) => {
 
 const asHandlerList = (val) => asHookList(val, true)
 
-const collectHooks = (cfg = {}) => ({
-  decode: asHookList(cfg?.decode, true),
-  pre: asHookList(cfg?.pre, true),
-  post: asHookList(cfg?.post, true),
-  onDecodeErr: asHookList(cfg?.onDecodeError, true),
-  onPreErr: asHookList(cfg?.onPreError, true),
-  onPostErr: asHookList(cfg?.onPostError, true),
-  onHandlerErr: asHookList(cfg?.onHandlerError, true),
-  onErr: asHookList(cfg?.onError, true),
-})
+const collectHooks = (cfg = {}) => {
+  const routeCtx = isPlainObject(cfg?.context) ? cfg.context : {}
+  const decode = asHookList(cfg?.decode, true)
+  const pre = asHookList(cfg?.pre, true)
+  const post = asHookList(cfg?.post, true)
+  const onDecodeErr = asHookList(cfg?.onDecodeError, true)
+  const onPreErr = asHookList(cfg?.onPreError, true)
+  const onPostErr = asHookList(cfg?.onPostError, true)
+  const onHandlerErr = asHookList(cfg?.onHandlerError, true)
+  const onErr = asHookList(cfg?.onError, true)
+  return {
+    decode,
+    decodeRouteCtx: routeCtxForHooks(decode, routeCtx),
+    pre,
+    preRouteCtx: routeCtxForHooks(pre, routeCtx),
+    post,
+    postRouteCtx: routeCtxForHooks(post, routeCtx),
+    onDecodeErr,
+    onDecodeErrRouteCtx: routeCtxForHooks(onDecodeErr, routeCtx),
+    onPreErr,
+    onPreErrRouteCtx: routeCtxForHooks(onPreErr, routeCtx),
+    onPostErr,
+    onPostErrRouteCtx: routeCtxForHooks(onPostErr, routeCtx),
+    onHandlerErr,
+    onHandlerErrRouteCtx: routeCtxForHooks(onHandlerErr, routeCtx),
+    onErr,
+    onErrRouteCtx: routeCtxForHooks(onErr, routeCtx),
+    routeCtx,
+  }
+}
 
 const mergeHooks = (parent, current, order = 'parent-first') => {
   const parentArr = Array.isArray(parent) ? parent : []
@@ -89,13 +118,21 @@ const mergeHooks = (parent, current, order = 'parent-first') => {
 
 const aggregateHooks = (agg, hooks) => ({
   decode: mergeHooks(agg.decode, hooks.decode, 'parent-first'),
+  decodeRouteCtx: mergeHooks(agg.decodeRouteCtx, hooks.decodeRouteCtx, 'parent-first'),
   pre: mergeHooks(agg.pre, hooks.pre, 'parent-first'),
+  preRouteCtx: mergeHooks(agg.preRouteCtx, hooks.preRouteCtx, 'parent-first'),
   post: mergeHooks(agg.post, hooks.post, 'child-first'),
+  postRouteCtx: mergeHooks(agg.postRouteCtx, hooks.postRouteCtx, 'child-first'),
   onDecodeErr: mergeHooks(agg.onDecodeErr, hooks.onDecodeErr, 'child-first'),
+  onDecodeErrRouteCtx: mergeHooks(agg.onDecodeErrRouteCtx, hooks.onDecodeErrRouteCtx, 'child-first'),
   onPreErr: mergeHooks(agg.onPreErr, hooks.onPreErr, 'child-first'),
+  onPreErrRouteCtx: mergeHooks(agg.onPreErrRouteCtx, hooks.onPreErrRouteCtx, 'child-first'),
   onPostErr: mergeHooks(agg.onPostErr, hooks.onPostErr, 'child-first'),
+  onPostErrRouteCtx: mergeHooks(agg.onPostErrRouteCtx, hooks.onPostErrRouteCtx, 'child-first'),
   onHandlerErr: mergeHooks(agg.onHandlerErr, hooks.onHandlerErr, 'child-first'),
+  onHandlerErrRouteCtx: mergeHooks(agg.onHandlerErrRouteCtx, hooks.onHandlerErrRouteCtx, 'child-first'),
   onErr: mergeHooks(agg.onErr, hooks.onErr, 'child-first'),
+  onErrRouteCtx: mergeHooks(agg.onErrRouteCtx, hooks.onErrRouteCtx, 'child-first'),
 })
 
 const normalizeValues = (vals) => (vals && typeof vals === 'object') ? vals : {}
@@ -154,20 +191,27 @@ const extendTokens = (node, activeTokens, cfg = {}) => {
   return activeTokens.concat(ext)
 }
 
-const attachLeaf = (node, handlers, hooks) => {
+const attachHookList = (node, property, hooks, routeCtx) => {
+  if (hooks.length === 0) return
+  node[property] = hooks
+  node[property + 'RouteCtx'] = routeCtx
+}
+
+const attachLeaf = (node, handlers, hooks, handlerRouteCtx) => {
   node.$leaf = true
   if (handlers.length > 0) {
     node.$handlers = handlers
     node.$handler = handlers[0]
+    node.$handlerRouteCtx = routeCtxForHooks(handlers, handlerRouteCtx)
   }
-  if (hooks.decode.length > 0) node.$decode = hooks.decode
-  if (hooks.pre.length > 0) node.$pre = hooks.pre
-  if (hooks.post.length > 0) node.$post = hooks.post
-  if (hooks.onDecodeErr.length > 0) node.$onDecodeError = hooks.onDecodeErr
-  if (hooks.onPreErr.length > 0) node.$onPreError = hooks.onPreErr
-  if (hooks.onPostErr.length > 0) node.$onPostError = hooks.onPostErr
-  if (hooks.onHandlerErr.length > 0) node.$onHandlerError = hooks.onHandlerErr
-  if (hooks.onErr.length > 0) node.$onError = hooks.onErr
+  attachHookList(node, '$decode', hooks.decode, hooks.decodeRouteCtx)
+  attachHookList(node, '$pre', hooks.pre, hooks.preRouteCtx)
+  attachHookList(node, '$post', hooks.post, hooks.postRouteCtx)
+  attachHookList(node, '$onDecodeError', hooks.onDecodeErr, hooks.onDecodeErrRouteCtx)
+  attachHookList(node, '$onPreError', hooks.onPreErr, hooks.onPreErrRouteCtx)
+  attachHookList(node, '$onPostError', hooks.onPostErr, hooks.onPostErrRouteCtx)
+  attachHookList(node, '$onHandlerError', hooks.onHandlerErr, hooks.onHandlerErrRouteCtx)
+  attachHookList(node, '$onError', hooks.onErr, hooks.onErrRouteCtx)
 }
 
 export function registerRoute(state, values = {}, routeConfig = {}) {
@@ -221,7 +265,7 @@ export function registerRoute(state, values = {}, routeConfig = {}) {
         defineRoute(combinedValues, childConfig, nextAgg, extendedTokens)
       })
     } else {
-      attachLeaf(node, handlers, nextAgg)
+      attachLeaf(node, handlers, nextAgg, hooks.routeCtx)
     }
 
     routes.push({ values: { ...normalizedVals }, config: cfg })
@@ -249,14 +293,15 @@ export function registerDefault(state, routeConfig = {}) {
   trie.$handlers = handlers
   trie.$handler = handlers[0]
   const hooks = collectHooks(routeConfig)
-  if (hooks.decode.length > 0) trie.$decode = hooks.decode
-  if (hooks.pre.length > 0) trie.$pre = hooks.pre
-  if (hooks.post.length > 0) trie.$post = hooks.post
-  if (hooks.onDecodeErr.length > 0) trie.$onDecodeError = hooks.onDecodeErr
-  if (hooks.onPreErr.length > 0) trie.$onPreError = hooks.onPreErr
-  if (hooks.onPostErr.length > 0) trie.$onPostError = hooks.onPostErr
-  if (hooks.onHandlerErr.length > 0) trie.$onHandlerError = hooks.onHandlerErr
-  if (hooks.onErr.length > 0) trie.$onError = hooks.onErr
+  trie.$handlerRouteCtx = routeCtxForHooks(handlers, hooks.routeCtx)
+  attachHookList(trie, '$decode', hooks.decode, hooks.decodeRouteCtx)
+  attachHookList(trie, '$pre', hooks.pre, hooks.preRouteCtx)
+  attachHookList(trie, '$post', hooks.post, hooks.postRouteCtx)
+  attachHookList(trie, '$onDecodeError', hooks.onDecodeErr, hooks.onDecodeErrRouteCtx)
+  attachHookList(trie, '$onPreError', hooks.onPreErr, hooks.onPreErrRouteCtx)
+  attachHookList(trie, '$onPostError', hooks.onPostErr, hooks.onPostErrRouteCtx)
+  attachHookList(trie, '$onHandlerError', hooks.onHandlerErr, hooks.onHandlerErrRouteCtx)
+  attachHookList(trie, '$onError', hooks.onErr, hooks.onErrRouteCtx)
 
   routes.push({ values: {}, config: routeConfig, default: true })
 }

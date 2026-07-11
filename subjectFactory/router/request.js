@@ -7,6 +7,7 @@ export async function handleRequest(arg = {}, state) {
   const trie = state.trie
   const hooks = state.hooks
   const isFn = (fn) => typeof fn === 'function'
+  const EMPTY_ROUTE_CTX = Object.freeze({})
   const normalizeHandlers = (val) => Array.isArray(val)
     ? val.filter(isFn)
     : (isFn(val) ? [val] : [])
@@ -27,7 +28,30 @@ export async function handleRequest(arg = {}, state) {
     info.fn = getFnName(fn)
   }
 
-  const best = { score: -1, handlers: [], decode: [], pre: [], post: [], onDecodeErr: [], onPreErr: [], onPostErr: [], onHandlerErr: [], onErr: [], values: {}, paramsExt: {}, extSeq: [] }
+  const best = {
+    score: -1,
+    handlers: [],
+    handlerRouteCtx: [],
+    decode: [],
+    decodeRouteCtx: [],
+    pre: [],
+    preRouteCtx: [],
+    post: [],
+    postRouteCtx: [],
+    onDecodeErr: [],
+    onDecodeErrRouteCtx: [],
+    onPreErr: [],
+    onPreErrRouteCtx: [],
+    onPostErr: [],
+    onPostErrRouteCtx: [],
+    onHandlerErr: [],
+    onHandlerErrRouteCtx: [],
+    onErr: [],
+    onErrRouteCtx: [],
+    values: {},
+    paramsExt: {},
+    extSeq: [],
+  }
   const collectBest = (node, baseStartIndex, matchedCount, matchedValues, extSeq, extIdx, paramsExt) => {
     if (!node) return
     const handlers = normalizeHandlers(node.$handlers ?? node.$handler)
@@ -35,14 +59,23 @@ export async function handleRequest(arg = {}, state) {
       if (matchedCount > best.score) {
         best.score = matchedCount
         best.handlers = handlers
+        best.handlerRouteCtx = Array.isArray(node.$handlerRouteCtx) ? node.$handlerRouteCtx : []
         best.decode = Array.isArray(node.$decode) ? node.$decode : []
+        best.decodeRouteCtx = Array.isArray(node.$decodeRouteCtx) ? node.$decodeRouteCtx : []
         best.pre = Array.isArray(node.$pre) ? node.$pre : []
+        best.preRouteCtx = Array.isArray(node.$preRouteCtx) ? node.$preRouteCtx : []
         best.post = Array.isArray(node.$post) ? node.$post : []
+        best.postRouteCtx = Array.isArray(node.$postRouteCtx) ? node.$postRouteCtx : []
         best.onDecodeErr = Array.isArray(node.$onDecodeError) ? node.$onDecodeError : []
+        best.onDecodeErrRouteCtx = Array.isArray(node.$onDecodeErrorRouteCtx) ? node.$onDecodeErrorRouteCtx : []
         best.onPreErr = Array.isArray(node.$onPreError) ? node.$onPreError : []
+        best.onPreErrRouteCtx = Array.isArray(node.$onPreErrorRouteCtx) ? node.$onPreErrorRouteCtx : []
         best.onPostErr = Array.isArray(node.$onPostError) ? node.$onPostError : []
+        best.onPostErrRouteCtx = Array.isArray(node.$onPostErrorRouteCtx) ? node.$onPostErrorRouteCtx : []
         best.onHandlerErr = Array.isArray(node.$onHandlerError) ? node.$onHandlerError : []
+        best.onHandlerErrRouteCtx = Array.isArray(node.$onHandlerErrorRouteCtx) ? node.$onHandlerErrorRouteCtx : []
         best.onErr = Array.isArray(node.$onError) ? node.$onError : []
+        best.onErrRouteCtx = Array.isArray(node.$onErrorRouteCtx) ? node.$onErrorRouteCtx : []
         best.values = matchedValues ? { ...matchedValues } : {}
         best.paramsExt = paramsExt ? { ...paramsExt } : {}
         const seqHere = (Array.isArray(node.$tokensExt) && node.$tokensExt.length > 0)
@@ -106,21 +139,50 @@ export async function handleRequest(arg = {}, state) {
       const specific = stage === 'decode'
         ? best.onDecodeErr
         : (stage === 'pre' ? best.onPreErr : (stage === 'post' ? best.onPostErr : best.onHandlerErr))
+      const specificRouteCtx = stage === 'decode'
+        ? best.onDecodeErrRouteCtx
+        : (stage === 'pre' ? best.onPreErrRouteCtx : (stage === 'post' ? best.onPostErrRouteCtx : best.onHandlerErrRouteCtx))
       const generic = best.onErr
+      const genericRouteCtx = best.onErrRouteCtx
       const chain = []
-      if (Array.isArray(specific) && specific.length > 0) chain.push(...specific)
-      if (Array.isArray(generic) && generic.length > 0) chain.push(...generic)
-      if (typeof hooks.onError === 'function') chain.push(async (args) => {
-        const safeArgs = args && typeof args === 'object'
-          ? { ...args, fn: args.fn !== undefined ? String(args.fn) : args.fn }
-          : args
-        return hooks.onError(safeArgs)
-      })
+      for (let i = 0; i < specific.length; i++) {
+        chain.push({
+          fn: specific[i],
+          routeCtx: specificRouteCtx[i] ?? EMPTY_ROUTE_CTX,
+        })
+      }
+      for (let i = 0; i < generic.length; i++) {
+        chain.push({
+          fn: generic[i],
+          routeCtx: genericRouteCtx[i] ?? EMPTY_ROUTE_CTX,
+        })
+      }
+      if (typeof hooks.onError === 'function') {
+        chain.push({
+          routeCtx: EMPTY_ROUTE_CTX,
+          fn: async (args) => {
+            const safeArgs = args && typeof args === 'object'
+              ? { ...args, fn: args.fn !== undefined ? String(args.fn) : args.fn }
+              : args
+            return hooks.onError(safeArgs)
+          },
+        })
+      }
       setHookInfo(stage, index, failingFn)
       let lastError = error
-      for (const eh of chain) {
+      for (const entry of chain) {
         try {
-          const r = await eh({ error: lastError, stage, index, fn: failingFn, rootCtx, info, message, scope })
+          const r = await entry.fn({
+            error: lastError,
+            stage,
+            index,
+            fn: failingFn,
+            rootCtx,
+            info,
+            message,
+            scope,
+            routeCtx: entry.routeCtx,
+          })
           if (r && typeof r === 'object') Object.assign(scope, r)
           scope.error = lastError
           return true
@@ -150,7 +212,8 @@ export async function handleRequest(arg = {}, state) {
           rootCtx,
           info,
           message,
-          scope
+          scope,
+          routeCtx: EMPTY_ROUTE_CTX,
         })
         mergeIntoScope(r)
       } catch (err) {
@@ -169,7 +232,7 @@ export async function handleRequest(arg = {}, state) {
       if (typeof hooks.onAbort === 'function') {
         const r = await hooks.onAbort({
           reason: ac.signal?.reason, signal: ac.signal, stage, index, fn: failingFn,
-          rootCtx, info, message, scope
+          rootCtx, routeCtx: EMPTY_ROUTE_CTX, info, message, scope
         })
         if (r && typeof r === 'object') Object.assign(scope, r)
       }
@@ -181,7 +244,7 @@ export async function handleRequest(arg = {}, state) {
       setHookInfo('before', 0, hooks.before)
       if (ac.signal?.aborted) return { done: true, result: await runAbortHandler({ stage: 'before', index: 0, failingFn: hooks.before }) }
       try {
-        const r = await hooks.before({ stage: 'before', index: 0, fn: hooks.before, rootCtx, info, message, scope })
+        const r = await hooks.before({ stage: 'before', index: 0, fn: hooks.before, rootCtx, routeCtx: EMPTY_ROUTE_CTX, info, message, scope })
         mergeIntoScope(r)
       } catch (error) {
         const handled = await runErrorHandlers({ stage: 'before', index: 0, failingFn: hooks.before, error })
@@ -195,7 +258,7 @@ export async function handleRequest(arg = {}, state) {
     const runBeforeEachHook = async ({ stage, index, fn }) => {
       if (typeof hooks.beforeEach !== 'function') return false
       try {
-        const r = await hooks.beforeEach({ stage, index, fn, rootCtx, info, message, scope })
+        const r = await hooks.beforeEach({ stage, index, fn, rootCtx, routeCtx: EMPTY_ROUTE_CTX, info, message, scope })
         mergeIntoScope(r)
       } catch (error) {
         const handled = await runErrorHandlers({ stage, index, failingFn: hooks.beforeEach, error })
@@ -207,7 +270,7 @@ export async function handleRequest(arg = {}, state) {
     const runAfterEachHook = async ({ stage, index, fn, error }) => {
       if (typeof hooks.afterEach !== 'function' || ac.signal?.aborted) return false
       try {
-        const r = await hooks.afterEach({ stage, index, fn, error, rootCtx, info, message, scope })
+        const r = await hooks.afterEach({ stage, index, fn, error, rootCtx, routeCtx: EMPTY_ROUTE_CTX, info, message, scope })
         mergeIntoScope(r)
       } catch (err) {
         const handled = await runErrorHandlers({ stage, index, failingFn: hooks.afterEach, error: err })
@@ -216,7 +279,7 @@ export async function handleRequest(arg = {}, state) {
       return false
     }
 
-    const executeStageHook = async ({ stage, index, fn, recordResult = false }) => {
+    const executeStageHook = async ({ stage, index, fn, routeCtx = EMPTY_ROUTE_CTX, recordResult = false }) => {
       setHookInfo(stage, index, fn)
       if (ac.signal?.aborted) return { done: true, result: await runAbortHandler({ stage, index, failingFn: fn }) }
 
@@ -227,7 +290,7 @@ export async function handleRequest(arg = {}, state) {
 
       let hookError = null
       try {
-        const r = await fn({ rootCtx, info, message, scope })
+        const r = await fn({ rootCtx, routeCtx, info, message, scope })
         mergeIntoScope(r)
         if (recordResult) scope[s.scope.result] = r
       } catch (error) {
@@ -254,12 +317,12 @@ export async function handleRequest(arg = {}, state) {
       if (beforeDone) return beforeResult
 
       for (let i = 0; i < best.decode.length; i++) {
-        const { done, result } = await executeStageHook({ stage: 'decode', index: i, fn: best.decode[i] })
+        const { done, result } = await executeStageHook({ stage: 'decode', index: i, fn: best.decode[i], routeCtx: best.decodeRouteCtx[i] })
         if (done) return result
       }
 
       for (let i = 0; i < best.pre.length; i++) {
-        const { done, result } = await executeStageHook({ stage: 'pre', index: i, fn: best.pre[i] })
+        const { done, result } = await executeStageHook({ stage: 'pre', index: i, fn: best.pre[i], routeCtx: best.preRouteCtx[i] })
         if (done) return result
       }
 
@@ -268,13 +331,14 @@ export async function handleRequest(arg = {}, state) {
           stage: 'handler',
           index: i,
           fn: best.handlers[i],
+          routeCtx: best.handlerRouteCtx[i],
           recordResult: true,
         })
         if (done) return result
       }
 
       for (let i = 0; i < best.post.length; i++) {
-        const { done, result } = await executeStageHook({ stage: 'post', index: i, fn: best.post[i] })
+        const { done, result } = await executeStageHook({ stage: 'post', index: i, fn: best.post[i], routeCtx: best.postRouteCtx[i] })
         if (done) return result
       }
 
