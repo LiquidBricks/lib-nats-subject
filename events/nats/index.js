@@ -164,11 +164,9 @@ export const events = {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "result_computed", "version": "v1", "id": "*"}),
                 },
               },
-            },
-            uses_gate: {
-              result_computed: {
+              started: {
                 v1: {
-                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "uses_gate", "action": "result_computed", "version": "v1", "id": "*"}),
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "started", "version": "v1", "id": "*"}),
                 },
               },
             },
@@ -176,6 +174,11 @@ export const events = {
               result_computed: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_task_state", "action": "result_computed", "version": "v1", "id": "*"}),
+                },
+              },
+              started: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_task_state", "action": "started", "version": "v1", "id": "*"}),
                 },
               },
             },
@@ -192,6 +195,11 @@ export const events = {
               completed: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "vertex", "entity": "stateMachine", "action": "completed", "version": "v1", "id": "*"}),
+                },
+              },
+              started: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "vertex", "entity": "stateMachine", "action": "started", "version": "v1", "id": "*"}),
                 },
               },
             },

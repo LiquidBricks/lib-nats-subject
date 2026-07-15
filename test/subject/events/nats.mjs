@@ -4,7 +4,7 @@ import assert from 'node:assert/strict'
 import { create as createBasicSubject } from '@liquid-bricks/lib-nats-subject/create/basic'
 import { create as createDiagnosticsSubject } from '@liquid-bricks/lib-nats-subject/create/diagnostics'
 import { events as natsEvents, constants } from '@liquid-bricks/lib-nats-subject/events/nats'
-import { events as hierarchicalEvents } from '../../../events/nats/*/index.js'
+import { events as hierarchicalEvents, meta as hierarchicalMeta } from '../../../events/nats/*/index.js'
 
 const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
 
@@ -46,7 +46,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 34 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 36 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -87,6 +87,13 @@ test('NATS event export includes check_state_machine_completion command', () => 
   assert.deepEqual(
     hierarchicalEvents.component_service['*']['*'].cmd.componentInstance.check_state_machine_completion.v1['*'][SUBJECT_PATCH],
     subjectTokens[SUBJECT_PATCH],
+  )
+  const schema = hierarchicalMeta.component_service['*']['*'].cmd.componentInstance
+    .check_state_machine_completion.v1['*'].schema
+  assert.deepEqual(schema.required, ['data'])
+  assert.deepEqual(
+    schema.properties.data.required,
+    ['instanceId', 'instanceVertexId', 'stateMachineId', 'type'],
   )
 })
 
@@ -159,25 +166,29 @@ test('NATS event export includes domain fact subjects', () => {
     id: '*',
   })
   assert.equal(
-    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.uses_gate.result_computed.v1['*']).forPublish().env('prod').build(),
-    'prod.domain._._.edge.uses_gate.result_computed.v1._',
+    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_data_state.started.v1['*']).forPublish().env('prod').build(),
+    'prod.domain._._.edge.has_data_state.started.v1._',
   )
   assert.equal(
     createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_task_state.result_computed.v1['*']).forPublish().env('prod').build(),
     'prod.domain._._.edge.has_task_state.result_computed.v1._',
   )
   assert.equal(
+    createBasicSubject(natsEvents['*'].domain['*']['*'].edge.has_task_state.started.v1['*']).forPublish().env('prod').build(),
+    'prod.domain._._.edge.has_task_state.started.v1._',
+  )
+  assert.equal(
     createBasicSubject(natsEvents['*'].domain['*']['*'].vertex.gateInstanceRef.result_computed.v1['*']).forPublish().env('prod').build(),
     'prod.domain._._.vertex.gateInstanceRef.result_computed.v1._',
   )
-  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.uses_gate.result_computed.v1['*'][SUBJECT_PATCH], {
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.has_data_state.started.v1['*'][SUBJECT_PATCH], {
     env: '*',
     ns: 'domain',
     tenant: '*',
     context: '*',
     channel: 'edge',
-    entity: 'uses_gate',
-    action: 'result_computed',
+    entity: 'has_data_state',
+    action: 'started',
     version: 'v1',
     id: '*',
   })
@@ -192,6 +203,17 @@ test('NATS event export includes domain fact subjects', () => {
     version: 'v1',
     id: '*',
   })
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].edge.has_task_state.started.v1['*'][SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'edge',
+    entity: 'has_task_state',
+    action: 'started',
+    version: 'v1',
+    id: '*',
+  })
   assert.deepEqual(natsEvents['*'].domain['*']['*'].vertex.gateInstanceRef.result_computed.v1['*'][SUBJECT_PATCH], {
     env: '*',
     ns: 'domain',
@@ -203,6 +225,38 @@ test('NATS event export includes domain fact subjects', () => {
     version: 'v1',
     id: '*',
   })
+
+  const expectedStateStartedFields = [
+    'instanceId',
+    'instanceVertexId',
+    'stateMachineId',
+    'stateEdgeId',
+    'stateId',
+    'nodeId',
+    'componentHash',
+    'name',
+    'deps',
+    'type',
+    'status',
+    'stateEdgeStatus',
+    'updatedAt',
+  ]
+  assert.deepEqual(
+    hierarchicalMeta.domain['*']['*'].edge.has_data_state.started.v1['*'].schema.properties.data.required,
+    expectedStateStartedFields,
+  )
+  assert.deepEqual(
+    hierarchicalMeta.domain['*']['*'].edge.has_task_state.started.v1['*'].schema.properties.data.required,
+    expectedStateStartedFields,
+  )
+  assert.equal(
+    hierarchicalMeta.domain['*']['*'].edge.has_data_state.started.v1['*'].schema.properties.data.additionalProperties,
+    true,
+  )
+  assert.equal(
+    hierarchicalMeta.domain['*']['*'].edge.has_task_state.started.v1['*'].schema.properties.data.additionalProperties,
+    true,
+  )
 })
 
 test('NATS event export includes stateMachine completed domain fact', () => {
@@ -227,6 +281,51 @@ test('NATS event export includes stateMachine completed domain fact', () => {
     hierarchicalEvents.domain['*']['*'].vertex.stateMachine.completed.v1['*'][SUBJECT_PATCH],
     subjectTokens[SUBJECT_PATCH],
   )
+  const schema = hierarchicalMeta.domain['*']['*'].vertex.stateMachine.completed.v1['*'].schema
+  assert.deepEqual(schema.required, ['data'])
+  assert.deepEqual(
+    schema.properties.data.required,
+    ['instanceId', 'stateMachineId', 'updatedAt'],
+  )
+})
+
+test('NATS event export includes typed stateMachine started domain fact', () => {
+  const subjectTokens = natsEvents['*'].domain['*']['*'].vertex.stateMachine.started.v1['*']
+  const subject = createBasicSubject(subjectTokens).forPublish()
+    .env('prod')
+    .build()
+
+  assert.equal(subject, 'prod.domain._._.vertex.stateMachine.started.v1._')
+  assert.deepEqual(subjectTokens[SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'vertex',
+    entity: 'stateMachine',
+    action: 'started',
+    version: 'v1',
+    id: '*',
+  })
+  assert.deepEqual(
+    hierarchicalEvents.domain['*']['*'].vertex.stateMachine.started.v1['*'][SUBJECT_PATCH],
+    subjectTokens[SUBJECT_PATCH],
+  )
+
+  const schema = hierarchicalMeta.domain['*']['*'].vertex.stateMachine.started.v1['*'].schema
+  assert.deepEqual(schema.required, ['data'])
+  assert.deepEqual(schema.properties.data.required, [
+    'instanceId',
+    'instanceVertexId',
+    'stateMachineId',
+    'state',
+    'dataStateIds',
+    'taskStateIds',
+    'importInstanceIds',
+    'gateInstanceIds',
+    'updatedAt',
+  ])
+  assert.equal(schema.properties.data.additionalProperties, true)
 })
 
 test('NATS event export includes diagnostics stream filter subjects', () => {
