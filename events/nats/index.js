@@ -40,6 +40,11 @@ export const events = {
               },
             },
             componentInstance: {
+              check_state_machine_completion: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "cmd", "entity": "componentInstance", "action": "check_state_machine_completion", "version": "v1", "id": "*"}),
+                },
+              },
               create: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "cmd", "entity": "componentInstance", "action": "create", "version": "v1", "id": "*"}),
@@ -180,6 +185,13 @@ export const events = {
               result_computed: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "vertex", "entity": "gateInstanceRef", "action": "result_computed", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+            stateMachine: {
+              completed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "vertex", "entity": "stateMachine", "action": "completed", "version": "v1", "id": "*"}),
                 },
               },
             },

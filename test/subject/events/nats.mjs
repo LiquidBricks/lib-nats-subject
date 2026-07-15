@@ -4,6 +4,7 @@ import assert from 'node:assert/strict'
 import { create as createBasicSubject } from '@liquid-bricks/lib-nats-subject/create/basic'
 import { create as createDiagnosticsSubject } from '@liquid-bricks/lib-nats-subject/create/diagnostics'
 import { events as natsEvents, constants } from '@liquid-bricks/lib-nats-subject/events/nats'
+import { events as hierarchicalEvents } from '../../../events/nats/*/index.js'
 
 const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
 
@@ -45,7 +46,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 32 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 34 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -63,6 +64,30 @@ test('NATS event export includes injectResults', () => {
     .build()
 
   assert.equal(subject, 'prod.component-service._._.cmd.componentInstance.injectResults.v1._')
+})
+
+test('NATS event export includes check_state_machine_completion command', () => {
+  const subjectTokens = natsEvents['*'].component_service['*']['*'].cmd.componentInstance.check_state_machine_completion.v1['*']
+  const subject = createBasicSubject(subjectTokens).forPublish()
+    .env('prod')
+    .build()
+
+  assert.equal(subject, 'prod.component-service._._.cmd.componentInstance.check_state_machine_completion.v1._')
+  assert.deepEqual(subjectTokens[SUBJECT_PATCH], {
+    env: '*',
+    ns: 'component-service',
+    tenant: '*',
+    context: '*',
+    channel: 'cmd',
+    entity: 'componentInstance',
+    action: 'check_state_machine_completion',
+    version: 'v1',
+    id: '*',
+  })
+  assert.deepEqual(
+    hierarchicalEvents.component_service['*']['*'].cmd.componentInstance.check_state_machine_completion.v1['*'][SUBJECT_PATCH],
+    subjectTokens[SUBJECT_PATCH],
+  )
 })
 
 test('NATS event export includes command and execution subjects', () => {
@@ -178,6 +203,30 @@ test('NATS event export includes domain fact subjects', () => {
     version: 'v1',
     id: '*',
   })
+})
+
+test('NATS event export includes stateMachine completed domain fact', () => {
+  const subjectTokens = natsEvents['*'].domain['*']['*'].vertex.stateMachine.completed.v1['*']
+  const subject = createBasicSubject(subjectTokens).forPublish()
+    .env('prod')
+    .build()
+
+  assert.equal(subject, 'prod.domain._._.vertex.stateMachine.completed.v1._')
+  assert.deepEqual(subjectTokens[SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'vertex',
+    entity: 'stateMachine',
+    action: 'completed',
+    version: 'v1',
+    id: '*',
+  })
+  assert.deepEqual(
+    hierarchicalEvents.domain['*']['*'].vertex.stateMachine.completed.v1['*'][SUBJECT_PATCH],
+    subjectTokens[SUBJECT_PATCH],
+  )
 })
 
 test('NATS event export includes diagnostics stream filter subjects', () => {

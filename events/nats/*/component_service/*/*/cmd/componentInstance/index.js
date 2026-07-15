@@ -1,18 +1,21 @@
-import { events as child0Events, meta as child0Meta } from './create/index.js'
-import { events as child1Events, meta as child1Meta } from './injectResults/index.js'
-import { events as child2Events, meta as child2Meta } from './start/index.js'
-import { events as child3Events, meta as child3Meta } from './start_dependants/index.js'
+import { events as child0Events, meta as child0Meta } from './check_state_machine_completion/index.js'
+import { events as child1Events, meta as child1Meta } from './create/index.js'
+import { events as child2Events, meta as child2Meta } from './injectResults/index.js'
+import { events as child3Events, meta as child3Meta } from './start/index.js'
+import { events as child4Events, meta as child4Meta } from './start_dependants/index.js'
 
 export const events = {
-  "create": child0Events,
-  "injectResults": child1Events,
-  "start": child2Events,
-  "start_dependants": child3Events,
+  "check_state_machine_completion": child0Events,
+  "create": child1Events,
+  "injectResults": child2Events,
+  "start": child3Events,
+  "start_dependants": child4Events,
 }
 
 export const meta = {
-  "create": child0Meta,
-  "injectResults": child1Meta,
-  "start": child2Meta,
-  "start_dependants": child3Meta,
+  "check_state_machine_completion": child0Meta,
+  "create": child1Meta,
+  "injectResults": child2Meta,
+  "start": child3Meta,
+  "start_dependants": child4Meta,
 }
