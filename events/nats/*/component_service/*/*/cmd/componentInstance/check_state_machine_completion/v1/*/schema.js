@@ -39,7 +39,7 @@ export const schema = {
             "required": ["type"]
           },
           "then": {
-            "required": ["gateInstanceRefId"],
+            "required": ["stateEdgeId", "gateInstanceRefId"],
             "anyOf": [
               { "required": ["result"] },
               { "required": ["resultValue"] }

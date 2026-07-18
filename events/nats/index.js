@@ -170,6 +170,13 @@ export const events = {
                 },
               },
             },
+            has_gate_state: {
+              result_computed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_gate_state", "action": "result_computed", "version": "v1", "id": "*"}),
+                },
+              },
+            },
             has_task_state: {
               result_computed: {
                 v1: {
@@ -184,13 +191,6 @@ export const events = {
             },
           },
           vertex: {
-            gateInstanceRef: {
-              result_computed: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "vertex", "entity": "gateInstanceRef", "action": "result_computed", "version": "v1", "id": "*"}),
-                },
-              },
-            },
             stateMachine: {
               completed: {
                 v1: {
