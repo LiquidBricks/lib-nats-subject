@@ -46,7 +46,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 36 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 39 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -257,6 +257,42 @@ test('NATS event export includes domain fact subjects', () => {
     hierarchicalMeta.domain['*']['*'].edge.has_task_state.started.v1['*'].schema.properties.data.additionalProperties,
     true,
   )
+})
+
+test('NATS event export includes domain snapshot result subjects', () => {
+  for (const type of ['data', 'gate', 'task']) {
+    const subjectTokens = natsEvents['*'].domain['*']['*'].snapshot[type].result.v1['*']
+    const expectedPatch = {
+      env: '*',
+      ns: 'domain',
+      tenant: '*',
+      context: '*',
+      channel: 'snapshot',
+      entity: type,
+      action: 'result',
+      version: 'v1',
+      id: '*',
+    }
+
+    assert.equal(
+      createBasicSubject(subjectTokens).forSubscribe().build(),
+      `*.domain.*.*.snapshot.${type}.result.v1.*`,
+    )
+    assert.equal(
+      createBasicSubject(subjectTokens).forPublish().env('prod').build(),
+      `prod.domain._._.snapshot.${type}.result.v1._`,
+    )
+    assert.deepEqual(subjectTokens[SUBJECT_PATCH], expectedPatch)
+    assert.deepEqual(
+      hierarchicalEvents.domain['*']['*'].snapshot[type].result.v1['*'][SUBJECT_PATCH],
+      expectedPatch,
+    )
+
+    const schema = hierarchicalMeta.domain['*']['*'].snapshot[type].result.v1['*'].schema
+    assert.equal(schema.title, `events.nats.*.domain.*.*.snapshot.${type}.result.v1.*`)
+    assert.equal(schema.type, 'object')
+    assert.equal(schema.additionalProperties, true)
+  }
 })
 
 test('NATS event export includes stateMachine completed domain fact', () => {

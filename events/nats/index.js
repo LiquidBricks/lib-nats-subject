@@ -190,6 +190,29 @@ export const events = {
               },
             },
           },
+          snapshot: {
+            data: {
+              result: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "data", "action": "result", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+            gate: {
+              result: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "gate", "action": "result", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+            task: {
+              result: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "task", "action": "result", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+          },
           vertex: {
             stateMachine: {
               completed: {
