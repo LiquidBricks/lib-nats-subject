@@ -50,20 +50,24 @@ test('NATS event export includes startDone and package-level constants', () => {
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
-test('NATS event export includes processInjectedComputeResultDone', () => {
-  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.processInjectedComputeResultDone.v1['*']).forPublish()
-    .env('prod')
-    .build()
-
-  assert.equal(subject, 'prod.component-service._._.evt.componentInstance.processInjectedComputeResultDone.v1._')
-})
-
 test('NATS event export includes injectResults', () => {
   const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].cmd.componentInstance.injectResults.v1['*']).forPublish()
     .env('prod')
     .build()
 
   assert.equal(subject, 'prod.component-service._._.cmd.componentInstance.injectResults.v1._')
+  assert.deepEqual(
+    hierarchicalMeta.component_service['*']['*'].cmd.componentInstance.injectResults.v1['*'].schema.properties.data.required,
+    [
+      'instanceId',
+      'instanceVertexId',
+      'stateMachineId',
+      'stateEdgeId',
+      'type',
+      'result',
+      'updatedAt',
+    ],
+  )
 })
 
 test('NATS event export includes check_state_machine_completion command', () => {
@@ -259,6 +263,82 @@ test('NATS event export includes domain fact subjects', () => {
   )
 })
 
+test('NATS event export includes typed injection source fact', () => {
+  const subjectTokens = natsEvents['*'].domain['*']['*'].edge.injects_into.injected.v1['*']
+  const subject = createBasicSubject(subjectTokens).forPublish()
+    .env('prod')
+    .id('source-state-edge')
+    .build()
+
+  assert.equal(subject, 'prod.domain._._.edge.injects_into.injected.v1.source-state-edge')
+  assert.deepEqual(subjectTokens[SUBJECT_PATCH], {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'edge',
+    entity: 'injects_into',
+    action: 'injected',
+    version: 'v1',
+    id: '*',
+  })
+  assert.deepEqual(
+    hierarchicalEvents.domain['*']['*'].edge.injects_into.injected.v1['*'][SUBJECT_PATCH],
+    subjectTokens[SUBJECT_PATCH],
+  )
+
+  const schema = hierarchicalMeta.domain['*']['*'].edge.injects_into.injected.v1['*'].schema
+  assert.equal(schema.title, 'events.nats.*.domain.*.*.edge.injects_into.injected.v1.*')
+  assert.deepEqual(schema.required, ['data'])
+  assert.deepEqual(schema.properties.data.required, [
+    'instanceId',
+    'instanceVertexId',
+    'stateMachineId',
+    'stateEdgeId',
+    'type',
+    'result',
+    'updatedAt',
+  ])
+  assert.deepEqual(schema.properties.data.properties.type.enum, ['data', 'task'])
+  assert.deepEqual(schema.properties.data.properties.result, {})
+  assert.equal(schema.properties.data.required.includes('result'), true)
+  assert.equal(schema.additionalProperties, true)
+  assert.equal(schema.properties.data.additionalProperties, true)
+})
+
+test('NATS event export describes result-computed domain facts', () => {
+  const entityByType = {
+    data: 'has_data_state',
+    gate: 'has_gate_state',
+    task: 'has_task_state',
+  }
+
+  for (const [type, entity] of Object.entries(entityByType)) {
+    const schema = hierarchicalMeta.domain['*']['*'].edge[entity].result_computed.v1['*'].schema
+    const expectedRequired = [
+      'instanceId',
+      'instanceVertexId',
+      'stateMachineId',
+      'stateEdgeId',
+      ...(type === 'gate' ? ['gateInstanceRefId'] : []),
+      'type',
+      'name',
+      'result',
+      'updatedAt',
+    ]
+
+    assert.deepEqual(schema.required, ['data'])
+    assert.deepEqual(schema.properties.data.required, expectedRequired)
+    assert.equal(schema.properties.data.properties.type.const, type)
+    if (type !== 'gate') {
+      assert.deepEqual(schema.properties.data.anyOf, [
+        { required: ['stateEdgeStatus'] },
+        { required: ['status'] },
+      ])
+    }
+  }
+})
+
 test('NATS event export includes domain snapshot result subjects', () => {
   for (const type of ['data', 'gate', 'task']) {
     const subjectTokens = natsEvents['*'].domain['*']['*'].snapshot[type].result.v1['*']
@@ -292,6 +372,19 @@ test('NATS event export includes domain snapshot result subjects', () => {
     assert.equal(schema.title, `events.nats.*.domain.*.*.snapshot.${type}.result.v1.*`)
     assert.equal(schema.type, 'object')
     assert.equal(schema.additionalProperties, true)
+    assert.deepEqual(schema.properties.data.required, [
+      'instanceId',
+      'instanceVertexId',
+      'componentStateId',
+      'stateMachineId',
+      'stateEdgeId',
+      ...(type === 'gate' ? ['gateInstanceRefId'] : []),
+      'type',
+      'name',
+      'delta',
+      'updatedAt',
+    ])
+    assert.equal(schema.properties.data.properties.type.const, type)
   }
 })
 

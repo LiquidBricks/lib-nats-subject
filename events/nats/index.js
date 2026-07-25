@@ -110,11 +110,6 @@ export const events = {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "componentInstance", "action": "createDone", "version": "v1", "id": "*"}),
                 },
               },
-              processInjectedComputeResultDone: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "componentInstance", "action": "processInjectedComputeResultDone", "version": "v1", "id": "*"}),
-                },
-              },
               startDone: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "evt", "entity": "componentInstance", "action": "startDone", "version": "v1", "id": "*"}),
@@ -186,6 +181,13 @@ export const events = {
               started: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_task_state", "action": "started", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+            injects_into: {
+              injected: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "injects_into", "action": "injected", "version": "v1", "id": "*"}),
                 },
               },
             },

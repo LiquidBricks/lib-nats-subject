@@ -1,6 +1,6 @@
 export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "events.nats.*.component_service.*.*.cmd.componentInstance.injectResults.v1.*",
+  "title": "events.nats.*.domain.*.*.edge.injects_into.injected.v1.*",
   "type": "object",
   "required": ["data"],
   "properties": {
