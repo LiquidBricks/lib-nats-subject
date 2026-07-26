@@ -10,20 +10,20 @@ const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
 
 test('NATS event tokens build publish subject with wildcard placeholders as underscores', () => {
 
-  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']).forPublish()
+  const subject = createBasicSubject(natsEvents['*'].domain['*']['*'].vertex.componentInstance.created.v1['*']).forPublish()
     .env('prod')
     .build()
 
-  assert.equal(subject, 'prod.component-service._._.evt.componentInstance.createDone.v1._')
-  assert.deepEqual(Object.keys(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']), [])
-  assert.deepEqual(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*'][SUBJECT_PATCH], {
+  assert.equal(subject, 'prod.domain._._.vertex.componentInstance.created.v1._')
+  assert.deepEqual(Object.keys(natsEvents['*'].domain['*']['*'].vertex.componentInstance.created.v1['*']), [])
+  assert.deepEqual(natsEvents['*'].domain['*']['*'].vertex.componentInstance.created.v1['*'][SUBJECT_PATCH], {
     env: '*',
-    ns: 'component-service',
+    ns: 'domain',
     tenant: '*',
     context: '*',
-    channel: 'evt',
+    channel: 'vertex',
     entity: 'componentInstance',
-    action: 'createDone',
+    action: 'created',
     version: 'v1',
     id: '*',
   })
@@ -31,11 +31,43 @@ test('NATS event tokens build publish subject with wildcard placeholders as unde
 
 test('NATS event tokens can initialize create directly', () => {
 
-  const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].evt.componentInstance.createDone.v1['*']).forPublish()
+  const subject = createBasicSubject(natsEvents['*'].domain['*']['*'].vertex.componentInstance.created.v1['*']).forPublish()
     .env('prod')
     .build()
 
-  assert.equal(subject, 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+  assert.equal(subject, 'prod.domain._._.vertex.componentInstance.created.v1._')
+})
+
+test('NATS event export includes typed componentInstance created domain fact', () => {
+  const subjectTokens = natsEvents['*'].domain['*']['*'].vertex.componentInstance.created.v1['*']
+  assert.deepEqual(
+    hierarchicalEvents.domain['*']['*'].vertex.componentInstance.created.v1['*'][SUBJECT_PATCH],
+    subjectTokens[SUBJECT_PATCH],
+  )
+
+  const schema = hierarchicalMeta.domain['*']['*'].vertex.componentInstance.created.v1['*'].schema
+  assert.deepEqual(schema.required, ['data'])
+  assert.deepEqual(schema.properties.data.required, [
+    'instanceId',
+    'instanceVertexId',
+    'componentId',
+    'componentHash',
+    'stateMachineId',
+    'state',
+    'updatedAt',
+  ])
+  assert.deepEqual(
+    schema.properties.data.properties.state.additionalProperties,
+    { type: 'null' },
+  )
+  assert.equal(
+    Object.hasOwn(natsEvents['*'].component_service['*']['*'].evt.componentInstance, 'createDone'),
+    false,
+  )
+  assert.equal(
+    Object.hasOwn(hierarchicalEvents.component_service['*']['*'].evt.componentInstance, 'createDone'),
+    false,
+  )
 })
 
 test('NATS event export includes startDone and package-level constants', () => {
@@ -46,7 +78,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 39 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 40 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -386,6 +418,49 @@ test('NATS event export includes domain snapshot result subjects', () => {
     ])
     assert.equal(schema.properties.data.properties.type.const, type)
   }
+})
+
+test('NATS event export includes instance state snapshot results', () => {
+  const subjectTokens = natsEvents['*'].domain['*']['*'].snapshot.instance.result.v1['*']
+  const expectedPatch = {
+    env: '*',
+    ns: 'domain',
+    tenant: '*',
+    context: '*',
+    channel: 'snapshot',
+    entity: 'instance',
+    action: 'result',
+    version: 'v1',
+    id: '*',
+  }
+
+  assert.equal(
+    createBasicSubject(subjectTokens).forPublish().env('prod').context('delta').build(),
+    'prod.domain._.delta.snapshot.instance.result.v1._',
+  )
+  assert.deepEqual(subjectTokens[SUBJECT_PATCH], expectedPatch)
+  assert.deepEqual(
+    hierarchicalEvents.domain['*']['*'].snapshot.instance.result.v1['*'][SUBJECT_PATCH],
+    expectedPatch,
+  )
+
+  const schema = hierarchicalMeta.domain['*']['*'].snapshot.instance.result.v1['*'].schema
+  assert.deepEqual(schema.properties.data.required, [
+    'instanceId',
+    'instanceVertexId',
+    'componentStateId',
+    'stateMachineId',
+    'type',
+    'name',
+    'delta',
+    'updatedAt',
+  ])
+  assert.equal(schema.properties.data.properties.type.const, 'instance')
+  assert.equal(schema.properties.data.properties.name.const, 'state')
+  assert.deepEqual(
+    schema.properties.data.properties.delta.properties['instance.state'].enum,
+    ['created', 'running', 'complete'],
+  )
 })
 
 test('NATS event export includes stateMachine completed domain fact', () => {

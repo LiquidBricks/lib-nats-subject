@@ -63,65 +63,65 @@ test('set preserves wildcard tokens for subscribe subjects', () => {
   const s = create()
     .set({
       env: '*',
-      ns: 'component-service',
+      ns: 'domain',
       tenant: '*',
       context: '*',
-      channel: 'evt',
+      channel: 'vertex',
       entity: 'componentInstance',
-      action: 'createDone',
+      action: 'created',
       version: 'v1',
       id: '*',
     })
     .env('prod')
 
-  assert.equal(s.build(), 'prod.component-service.*.*.evt.componentInstance.createDone.v1.*')
-  assert.equal(s.forSubscribe().build(), 'prod.component-service.*.*.evt.componentInstance.createDone.v1.*')
-  assert.equal(s.forPublish().build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+  assert.equal(s.build(), 'prod.domain.*.*.vertex.componentInstance.created.v1.*')
+  assert.equal(s.forSubscribe().build(), 'prod.domain.*.*.vertex.componentInstance.created.v1.*')
+  assert.equal(s.forPublish().build(), 'prod.domain._._.vertex.componentInstance.created.v1._')
 })
 
 test('object init preserves wildcard tokens for subscribe subjects', () => {
   const s = create({
     env: '*',
-    ns: 'component-service',
+    ns: 'domain',
     tenant: '*',
     context: '*',
-    channel: 'evt',
+    channel: 'vertex',
     entity: 'componentInstance',
-    action: 'createDone',
+    action: 'created',
     version: 'v1',
     id: '*',
   }).env('prod')
 
-  assert.equal(s.build(), 'prod.component-service.*.*.evt.componentInstance.createDone.v1.*')
-  assert.equal(s.forPublish().build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+  assert.equal(s.build(), 'prod.domain.*.*.vertex.componentInstance.created.v1.*')
+  assert.equal(s.forPublish().build(), 'prod.domain._._.vertex.componentInstance.created.v1._')
 })
 
 test('forPublish can be selected before fluent setters', () => {
   const s = create({
     env: '*',
-    ns: 'component-service',
+    ns: 'domain',
     tenant: '*',
     context: '*',
-    channel: 'evt',
+    channel: 'vertex',
     entity: 'componentInstance',
-    action: 'createDone',
+    action: 'created',
     version: 'v1',
     id: '*',
   }).forPublish().env('prod')
 
-  assert.deepEqual(s.parts(), ['prod', 'component-service', '_', '_', 'evt', 'componentInstance', 'createDone', 'v1', '_'])
-  assert.equal(s.build(), 'prod.component-service._._.evt.componentInstance.createDone.v1._')
+  assert.deepEqual(s.parts(), ['prod', 'domain', '_', '_', 'vertex', 'componentInstance', 'created', 'v1', '_'])
+  assert.equal(s.build(), 'prod.domain._._.vertex.componentInstance.created.v1._')
 })
 
 test('toObject returns concrete subscribe route tokens', () => {
   const path = create({
     env: '*',
-    ns: 'component-service',
+    ns: 'domain',
     tenant: '*',
     context: '*',
-    channel: 'evt',
+    channel: 'vertex',
     entity: 'componentInstance',
-    action: 'createDone',
+    action: 'created',
     version: 'v1',
     id: '*',
   })
@@ -129,10 +129,10 @@ test('toObject returns concrete subscribe route tokens', () => {
     .toObject()
 
   assert.deepEqual(path, {
-    ns: 'component-service',
-    channel: 'evt',
+    ns: 'domain',
+    channel: 'vertex',
     entity: 'componentInstance',
-    action: 'createDone',
+    action: 'created',
     version: 'v1',
   })
 })

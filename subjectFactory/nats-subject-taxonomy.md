@@ -118,10 +118,15 @@ prod.cs.t.acme.componentService.cmd.task.retry.v1
 prod.cs.t.01HFF2F6.componentService.cmd.spec.create.v1
 ```
 
+### Domain facts (JetStream)
+
+```
+prod.domain._._.vertex.componentInstance.created.v1.01HF…
+```
+
 ### Events (JetStream)
 
 ```
-prod.cs._.componentService.evt.componentInstance.created.v1.01HF…
 prod.cs._.componentService.evt.componentInstance.started.v1.01HF…
 prod.cs.t.acme.componentService.evt.task.completed.v1.45XY…
 prod.cs._.componentService.evt.spec.created.v1.77AB…
