@@ -1,6 +1,6 @@
 export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "events.nats.*.domain.*.*.snapshot.instance.result.v1.*",
+  "title": "events.nats.*.domain.*.*.snapshot.task.state.v1.*",
   "type": "object",
   "required": ["data"],
   "properties": {
@@ -11,8 +11,10 @@ export const schema = {
         "instanceVertexId",
         "componentStateId",
         "stateMachineId",
+        "stateEdgeId",
         "type",
         "name",
+        "state",
         "delta",
         "updatedAt"
       ],
@@ -21,18 +23,11 @@ export const schema = {
         "instanceVertexId": { "type": "string", "minLength": 1 },
         "componentStateId": { "type": "string", "minLength": 1 },
         "stateMachineId": { "type": "string", "minLength": 1 },
-        "type": { "const": "instance" },
-        "name": { "const": "state" },
-        "delta": {
-          "type": "object",
-          "required": ["instance.state"],
-          "properties": {
-            "instance.state": {
-              "enum": ["created", "running", "complete"]
-            }
-          },
-          "additionalProperties": false
-        },
+        "stateEdgeId": { "type": "string", "minLength": 1 },
+        "type": { "const": "task" },
+        "name": { "type": "string", "minLength": 1 },
+        "state": { "type": "string", "minLength": 1 },
+        "delta": { "type": "object", "minProperties": 1 },
         "updatedAt": {
           "type": "string",
           "format": "date-time",

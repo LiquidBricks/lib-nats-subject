@@ -1,9 +1,9 @@
-import { events as child0Events, meta as child0Meta } from './result/index.js'
+import { events as child0Events, meta as child0Meta } from './state/index.js'
 
 export const events = {
-  "result": child0Events,
+  "state": child0Events,
 }
 
 export const meta = {
-  "result": child0Meta,
+  "state": child0Meta,
 }

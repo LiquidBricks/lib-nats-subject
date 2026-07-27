@@ -194,6 +194,11 @@ export const events = {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "data", "action": "result", "version": "v1", "id": "*"}),
                 },
               },
+              state: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "data", "action": "state", "version": "v1", "id": "*"}),
+                },
+              },
             },
             gate: {
               result: {
@@ -203,9 +208,9 @@ export const events = {
               },
             },
             instance: {
-              result: {
+              state: {
                 v1: {
-                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "instance", "action": "result", "version": "v1", "id": "*"}),
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "instance", "action": "state", "version": "v1", "id": "*"}),
                 },
               },
             },
@@ -213,6 +218,11 @@ export const events = {
               result: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "task", "action": "result", "version": "v1", "id": "*"}),
+                },
+              },
+              state: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "task", "action": "state", "version": "v1", "id": "*"}),
                 },
               },
             },
