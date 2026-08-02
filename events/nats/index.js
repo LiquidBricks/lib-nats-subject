@@ -20,13 +20,6 @@ export const events = {
                 },
               },
             },
-            component: {
-              register: {
-                v1: {
-                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "cmd", "entity": "component", "action": "register", "version": "v1", "id": "*"}),
-                },
-              },
-            },
             componentAgent: {
               register: {
                 v1: {
@@ -123,6 +116,17 @@ export const events = {
               cmdRegisterProvidingAgentsComponent: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "*", "channel": "exec", "entity": "componentAgent", "action": "cmdRegisterProvidingAgentsComponent", "version": "v1", "id": "*"}),
+                },
+              },
+            },
+          },
+        },
+        "component-agent": {
+          cmd: {
+            component: {
+              register: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "component-agent", "channel": "cmd", "entity": "component", "action": "register", "version": "v1", "id": "*"}),
                 },
               },
             },

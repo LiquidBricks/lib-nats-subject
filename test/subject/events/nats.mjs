@@ -82,6 +82,34 @@ test('NATS event export includes startDone and package-level constants', () => {
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
+test('NATS component registration is scoped to the component-agent context', () => {
+  const subjectTokens = natsEvents['*'].component_service['*']['component-agent'].cmd.component.register.v1['*']
+  const subject = createBasicSubject(subjectTokens).forPublish()
+    .env('prod')
+    .build()
+
+  assert.equal(subject, 'prod.component-service._.component-agent.cmd.component.register.v1._')
+  assert.deepEqual(subjectTokens[SUBJECT_PATCH], {
+    env: '*',
+    ns: 'component-service',
+    tenant: '*',
+    context: 'component-agent',
+    channel: 'cmd',
+    entity: 'component',
+    action: 'register',
+    version: 'v1',
+    id: '*',
+  })
+  assert.deepEqual(
+    hierarchicalEvents.component_service['*']['component-agent'].cmd.component.register.v1['*'][SUBJECT_PATCH],
+    subjectTokens[SUBJECT_PATCH],
+  )
+  assert.equal(
+    hierarchicalMeta.component_service['*']['component-agent'].cmd.component.register.v1['*'].schema.title,
+    'events.nats.*.component_service.*.component-agent.cmd.component.register.v1.*',
+  )
+})
+
 test('NATS event export includes injectResults', () => {
   const subject = createBasicSubject(natsEvents['*'].component_service['*']['*'].cmd.componentInstance.injectResults.v1['*']).forPublish()
     .env('prod')
