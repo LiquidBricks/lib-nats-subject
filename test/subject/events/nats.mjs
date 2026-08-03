@@ -8,6 +8,21 @@ import { events as hierarchicalEvents, meta as hierarchicalMeta } from '../../..
 
 const SUBJECT_PATCH = Symbol.for('@liquid-bricks/lib-nats-subject.subjectPatch')
 
+function assertStructuredErrorSchema(errorSchema) {
+  assert.deepEqual(errorSchema.required, ['name', 'message'])
+  assert.equal(errorSchema.properties.name.minLength, 1)
+  assert.equal(errorSchema.properties.message.type, 'string')
+  assert.deepEqual(errorSchema.properties.code.type, ['string', 'number'])
+}
+
+function assertNoResultFailureProperties(properties) {
+  assert.equal(properties.status.const, 'error')
+  assert.equal(properties.stateEdgeStatus.const, 'error')
+  assert.equal(properties.result, false)
+  assert.equal(properties.resultValue, false)
+  assertStructuredErrorSchema(properties.error)
+}
+
 test('NATS event tokens build publish subject with wildcard placeholders as underscores', () => {
 
   const subject = createBasicSubject(natsEvents['*'].domain['*']['*'].vertex.componentInstance.created.v1['*']).forPublish()
@@ -78,7 +93,7 @@ test('NATS event export includes startDone and package-level constants', () => {
     .build()
 
   assert.equal(constants.LABEL, 'lib-nats-subject.events.nats')
-  assert.deepEqual(constants.SUMMARY, { subjectCount: 42 })
+  assert.deepEqual(constants.SUMMARY, { subjectCount: 52 })
   assert.equal(subject, 'prod.component-service._._.evt.componentInstance.startDone.v1.component-instance-1')
 })
 
@@ -193,6 +208,118 @@ test('NATS event export includes command and execution subjects', () => {
   )
 })
 
+test('NATS event export defines distinct provided and failed gateway compute results', () => {
+  const gatewaySchema = hierarchicalMeta.gateway['*'].function_result.evt.component.compute_function.v1['*'].schema
+  assert.deepEqual(gatewaySchema.required, ['instanceId', 'name', 'type', 'result', 'status'])
+  assert.deepEqual(gatewaySchema.properties.instanceId, { type: 'string', minLength: 1 })
+  assert.deepEqual(gatewaySchema.properties.name, { type: 'string', minLength: 1 })
+  assert.deepEqual(gatewaySchema.properties.type, {
+    type: 'string',
+    enum: ['data', 'gate', 'task'],
+  })
+  assert.equal(gatewaySchema.properties.status.const, 'provided')
+  assert.equal(gatewaySchema.properties.stateEdgeStatus.const, 'provided')
+  assert.equal(gatewaySchema.properties.error, false)
+  assert.equal(gatewaySchema.oneOf, undefined)
+
+  const failedTokens = natsEvents['*'].gateway['*'].function_result.evt.component.compute_function_failed.v1['*']
+  const failedPatch = {
+    env: '*',
+    ns: 'gateway',
+    tenant: '*',
+    context: 'function_result',
+    channel: 'evt',
+    entity: 'component',
+    action: 'compute_function_failed',
+    version: 'v1',
+    id: '*',
+  }
+  assert.equal(
+    createBasicSubject(failedTokens).forPublish().env('prod').build(),
+    'prod.gateway._.function_result.evt.component.compute_function_failed.v1._',
+  )
+  assert.deepEqual(failedTokens[SUBJECT_PATCH], failedPatch)
+  assert.deepEqual(
+    hierarchicalEvents.gateway['*'].function_result.evt.component.compute_function_failed.v1['*'][SUBJECT_PATCH],
+    failedPatch,
+  )
+
+  const failedSchema = hierarchicalMeta.gateway['*'].function_result.evt.component
+    .compute_function_failed.v1['*'].schema
+  assert.equal(
+    failedSchema.title,
+    'events.nats.*.gateway.*.function_result.evt.component.compute_function_failed.v1.*',
+  )
+  assert.deepEqual(failedSchema.required, ['instanceId', 'name', 'type', 'status', 'error'])
+  assert.deepEqual(failedSchema.properties.instanceId, { type: 'string', minLength: 1 })
+  assert.deepEqual(failedSchema.properties.name, { type: 'string', minLength: 1 })
+  assert.deepEqual(failedSchema.properties.type, {
+    type: 'string',
+    enum: ['data', 'gate', 'task'],
+  })
+  assert.equal(failedSchema.properties.status.const, 'error')
+  assert.equal(failedSchema.properties.stateEdgeStatus.const, 'error')
+  assert.equal(failedSchema.properties.result, false)
+  assert.equal(failedSchema.properties.resultValue, false)
+  assertStructuredErrorSchema(failedSchema.properties.error)
+})
+
+test('NATS event export defines distinct provided and failed typed compute results', () => {
+  for (const type of ['data', 'gate', 'task']) {
+    const providedTokens = natsEvents['*'].component_service['*'].function_result.evt.component
+      .compute_function.v1[type]
+    const failedTokens = natsEvents['*'].component_service['*'].function_result.evt.component
+      .compute_function_failed.v1[type]
+    const providedPatch = {
+      env: '*',
+      ns: 'component-service',
+      tenant: '*',
+      context: 'function_result',
+      channel: 'evt',
+      entity: 'component',
+      action: 'compute_function',
+      version: 'v1',
+      id: type,
+    }
+    const failedPatch = { ...providedPatch, action: 'compute_function_failed' }
+
+    assert.equal(
+      createBasicSubject(providedTokens).forPublish().env('prod').build(),
+      `prod.component-service._.function_result.evt.component.compute_function.v1.${type}`,
+    )
+    assert.equal(
+      createBasicSubject(failedTokens).forPublish().env('prod').build(),
+      `prod.component-service._.function_result.evt.component.compute_function_failed.v1.${type}`,
+    )
+    assert.deepEqual(providedTokens[SUBJECT_PATCH], providedPatch)
+    assert.deepEqual(failedTokens[SUBJECT_PATCH], failedPatch)
+    assert.deepEqual(
+      hierarchicalEvents.component_service['*'].function_result.evt.component
+        .compute_function.v1[type][SUBJECT_PATCH],
+      providedPatch,
+    )
+    assert.deepEqual(
+      hierarchicalEvents.component_service['*'].function_result.evt.component
+        .compute_function_failed.v1[type][SUBJECT_PATCH],
+      failedPatch,
+    )
+
+    const providedSchema = hierarchicalMeta.component_service['*'].function_result.evt.component
+      .compute_function.v1[type].schema.properties.data
+    assert.deepEqual(providedSchema.required, ['instanceId', 'name', 'type', 'result', 'status'])
+    assert.equal(providedSchema.properties.type.const, type)
+    assert.deepEqual(providedSchema.properties.result, {})
+    assert.equal(providedSchema.properties.status.const, 'provided')
+    assert.equal(providedSchema.properties.stateEdgeStatus.const, 'provided')
+    assert.equal(providedSchema.properties.error, false)
+
+    const failedSchema = hierarchicalMeta.component_service['*'].function_result.evt.component
+      .compute_function_failed.v1[type].schema.properties.data
+    assert.deepEqual(failedSchema.required, ['instanceId', 'name', 'type', 'status', 'error'])
+    assert.equal(failedSchema.properties.type.const, type)
+    assertNoResultFailureProperties(failedSchema.properties)
+  }
+})
 
 test('NATS event export includes component service stream filter subjects', () => {
   assert.equal(
@@ -366,7 +493,7 @@ test('NATS event export includes typed injection source fact', () => {
   assert.equal(schema.properties.data.additionalProperties, true)
 })
 
-test('NATS event export describes result-computed domain facts', () => {
+test('NATS event export describes distinct result-computed and computation-failed domain facts', () => {
   const entityByType = {
     data: 'has_data_state',
     gate: 'has_gate_state',
@@ -374,8 +501,43 @@ test('NATS event export describes result-computed domain facts', () => {
   }
 
   for (const [type, entity] of Object.entries(entityByType)) {
-    const schema = hierarchicalMeta.domain['*']['*'].edge[entity].result_computed.v1['*'].schema
-    const expectedRequired = [
+    const providedTokens = natsEvents['*'].domain['*']['*'].edge[entity].result_computed.v1['*']
+    const failedTokens = natsEvents['*'].domain['*']['*'].edge[entity].computation_failed.v1['*']
+    const providedPatch = {
+      env: '*',
+      ns: 'domain',
+      tenant: '*',
+      context: '*',
+      channel: 'edge',
+      entity,
+      action: 'result_computed',
+      version: 'v1',
+      id: '*',
+    }
+    const failedPatch = { ...providedPatch, action: 'computation_failed' }
+
+    assert.equal(
+      createBasicSubject(providedTokens).forPublish().env('prod').build(),
+      `prod.domain._._.edge.${entity}.result_computed.v1._`,
+    )
+    assert.equal(
+      createBasicSubject(failedTokens).forPublish().env('prod').build(),
+      `prod.domain._._.edge.${entity}.computation_failed.v1._`,
+    )
+    assert.deepEqual(providedTokens[SUBJECT_PATCH], providedPatch)
+    assert.deepEqual(failedTokens[SUBJECT_PATCH], failedPatch)
+    assert.deepEqual(
+      hierarchicalEvents.domain['*']['*'].edge[entity].result_computed.v1['*'][SUBJECT_PATCH],
+      providedPatch,
+    )
+    assert.deepEqual(
+      hierarchicalEvents.domain['*']['*'].edge[entity].computation_failed.v1['*'][SUBJECT_PATCH],
+      failedPatch,
+    )
+
+    const providedSchema = hierarchicalMeta.domain['*']['*'].edge[entity]
+      .result_computed.v1['*'].schema
+    const providedRequired = [
       'instanceId',
       'instanceVertexId',
       'stateMachineId',
@@ -384,25 +546,48 @@ test('NATS event export describes result-computed domain facts', () => {
       'type',
       'name',
       'result',
+      'status',
+      'stateEdgeStatus',
       'updatedAt',
     ]
 
-    assert.deepEqual(schema.required, ['data'])
-    assert.deepEqual(schema.properties.data.required, expectedRequired)
-    assert.equal(schema.properties.data.properties.type.const, type)
-    if (type !== 'gate') {
-      assert.deepEqual(schema.properties.data.anyOf, [
-        { required: ['stateEdgeStatus'] },
-        { required: ['status'] },
-      ])
-    }
+    assert.deepEqual(providedSchema.required, ['data'])
+    assert.deepEqual(providedSchema.properties.data.required, providedRequired)
+    assert.equal(providedSchema.properties.data.properties.type.const, type)
+    assert.deepEqual(providedSchema.properties.data.properties.result, {})
+    assert.equal(providedSchema.properties.data.properties.resultValue.type, 'string')
+    assert.equal(providedSchema.properties.data.properties.status.const, 'provided')
+    assert.equal(providedSchema.properties.data.properties.stateEdgeStatus.const, 'provided')
+    assert.equal(providedSchema.properties.data.properties.error, false)
+
+    const failedSchema = hierarchicalMeta.domain['*']['*'].edge[entity]
+      .computation_failed.v1['*'].schema
+    const failedRequired = [
+      'instanceId',
+      'instanceVertexId',
+      'stateMachineId',
+      'stateEdgeId',
+      ...(type === 'gate' ? ['gateInstanceRefId'] : []),
+      'type',
+      'name',
+      'status',
+      'stateEdgeStatus',
+      'error',
+      'updatedAt',
+    ]
+
+    assert.deepEqual(failedSchema.required, ['data'])
+    assert.deepEqual(failedSchema.properties.data.required, failedRequired)
+    assert.equal(failedSchema.properties.data.properties.type.const, type)
+    assertNoResultFailureProperties(failedSchema.properties.data.properties)
   }
 })
 
-test('NATS event export includes domain snapshot result subjects', () => {
+test('NATS event export includes distinct snapshot result and computation-failed subjects', () => {
   for (const type of ['data', 'gate', 'task']) {
-    const subjectTokens = natsEvents['*'].domain['*']['*'].snapshot[type].result.v1['*']
-    const expectedPatch = {
+    const providedTokens = natsEvents['*'].domain['*']['*'].snapshot[type].result.v1['*']
+    const failedTokens = natsEvents['*'].domain['*']['*'].snapshot[type].computation_failed.v1['*']
+    const providedPatch = {
       env: '*',
       ns: 'domain',
       tenant: '*',
@@ -413,26 +598,40 @@ test('NATS event export includes domain snapshot result subjects', () => {
       version: 'v1',
       id: '*',
     }
+    const failedPatch = { ...providedPatch, action: 'computation_failed' }
 
     assert.equal(
-      createBasicSubject(subjectTokens).forSubscribe().build(),
+      createBasicSubject(providedTokens).forSubscribe().build(),
       `*.domain.*.*.snapshot.${type}.result.v1.*`,
     )
     assert.equal(
-      createBasicSubject(subjectTokens).forPublish().env('prod').build(),
+      createBasicSubject(providedTokens).forPublish().env('prod').build(),
       `prod.domain._._.snapshot.${type}.result.v1._`,
     )
-    assert.deepEqual(subjectTokens[SUBJECT_PATCH], expectedPatch)
+    assert.equal(
+      createBasicSubject(failedTokens).forSubscribe().build(),
+      `*.domain.*.*.snapshot.${type}.computation_failed.v1.*`,
+    )
+    assert.equal(
+      createBasicSubject(failedTokens).forPublish().env('prod').build(),
+      `prod.domain._._.snapshot.${type}.computation_failed.v1._`,
+    )
+    assert.deepEqual(providedTokens[SUBJECT_PATCH], providedPatch)
+    assert.deepEqual(failedTokens[SUBJECT_PATCH], failedPatch)
     assert.deepEqual(
       hierarchicalEvents.domain['*']['*'].snapshot[type].result.v1['*'][SUBJECT_PATCH],
-      expectedPatch,
+      providedPatch,
+    )
+    assert.deepEqual(
+      hierarchicalEvents.domain['*']['*'].snapshot[type].computation_failed.v1['*'][SUBJECT_PATCH],
+      failedPatch,
     )
 
-    const schema = hierarchicalMeta.domain['*']['*'].snapshot[type].result.v1['*'].schema
-    assert.equal(schema.title, `events.nats.*.domain.*.*.snapshot.${type}.result.v1.*`)
-    assert.equal(schema.type, 'object')
-    assert.equal(schema.additionalProperties, true)
-    assert.deepEqual(schema.properties.data.required, [
+    const providedSchema = hierarchicalMeta.domain['*']['*'].snapshot[type].result.v1['*'].schema
+    assert.equal(providedSchema.title, `events.nats.*.domain.*.*.snapshot.${type}.result.v1.*`)
+    assert.equal(providedSchema.type, 'object')
+    assert.equal(providedSchema.additionalProperties, true)
+    assert.deepEqual(providedSchema.properties.data.required, [
       'instanceId',
       'instanceVertexId',
       'componentStateId',
@@ -442,9 +641,44 @@ test('NATS event export includes domain snapshot result subjects', () => {
       'type',
       'name',
       'delta',
+      'status',
+      'stateEdgeStatus',
       'updatedAt',
     ])
-    assert.equal(schema.properties.data.properties.type.const, type)
+    assert.equal(providedSchema.properties.data.properties.type.const, type)
+    assert.equal(Object.hasOwn(providedSchema.properties.data.properties, 'result'), false)
+    assert.equal(providedSchema.properties.data.properties.status.const, 'provided')
+    assert.equal(providedSchema.properties.data.properties.stateEdgeStatus.const, 'provided')
+    assert.equal(providedSchema.properties.data.properties.error, false)
+
+    const failedSchema = hierarchicalMeta.domain['*']['*'].snapshot[type]
+      .computation_failed.v1['*'].schema
+    assert.equal(
+      failedSchema.title,
+      `events.nats.*.domain.*.*.snapshot.${type}.computation_failed.v1.*`,
+    )
+    assert.deepEqual(failedSchema.properties.data.required, [
+      'instanceId',
+      'instanceVertexId',
+      'componentStateId',
+      'stateMachineId',
+      'stateEdgeId',
+      ...(type === 'gate' ? ['gateInstanceRefId'] : []),
+      'type',
+      'name',
+      'delta',
+      'status',
+      'stateEdgeStatus',
+      'error',
+      'updatedAt',
+    ])
+    assert.equal(failedSchema.properties.data.properties.type.const, type)
+    const failedDeltaSchema = failedSchema.properties.data.properties.delta
+    assert.equal(failedDeltaSchema.minProperties, 1)
+    assert.equal(failedDeltaSchema.maxProperties, 1)
+    assert.equal(failedDeltaSchema.propertyNames.pattern, `^${type}\\..+\\.state$`)
+    assert.deepEqual(failedDeltaSchema.additionalProperties, { const: 'error' })
+    assertNoResultFailureProperties(failedSchema.properties.data.properties)
   }
 })
 

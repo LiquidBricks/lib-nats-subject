@@ -15,6 +15,8 @@ export const schema = {
         "type",
         "name",
         "result",
+        "status",
+        "stateEdgeStatus",
         "updatedAt"
       ],
       "properties": {
@@ -28,6 +30,9 @@ export const schema = {
         "name": { "type": "string", "minLength": 1 },
         "result": {},
         "resultValue": { "type": "string" },
+        "status": { "const": "provided" },
+        "stateEdgeStatus": { "const": "provided" },
+        "error": false,
         "updatedAt": {
           "type": "string",
           "format": "date-time",

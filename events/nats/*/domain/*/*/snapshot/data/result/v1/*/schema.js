@@ -15,6 +15,8 @@ export const schema = {
         "type",
         "name",
         "delta",
+        "status",
+        "stateEdgeStatus",
         "updatedAt"
       ],
       "properties": {
@@ -26,6 +28,9 @@ export const schema = {
         "type": { "const": "data" },
         "name": { "type": "string", "minLength": 1 },
         "delta": { "type": "object", "minProperties": 1 },
+        "status": { "const": "provided" },
+        "stateEdgeStatus": { "const": "provided" },
+        "error": false,
         "updatedAt": {
           "type": "string",
           "format": "date-time",

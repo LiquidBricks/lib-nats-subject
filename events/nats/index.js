@@ -142,6 +142,13 @@ export const events = {
                   task: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "task"}),
                 },
               },
+              compute_function_failed: {
+                v1: {
+                  data: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function_failed", "version": "v1", "id": "data"}),
+                  gate: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function_failed", "version": "v1", "id": "gate"}),
+                  task: subjectPatch({"env": "*", "ns": "component-service", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function_failed", "version": "v1", "id": "task"}),
+                },
+              },
             },
           },
         },
@@ -153,6 +160,11 @@ export const events = {
           edge: {
             ">": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": ">"}),
             has_data_state: {
+              computation_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "computation_failed", "version": "v1", "id": "*"}),
+                },
+              },
               result_computed: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_data_state", "action": "result_computed", "version": "v1", "id": "*"}),
@@ -165,6 +177,11 @@ export const events = {
               },
             },
             has_gate_state: {
+              computation_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_gate_state", "action": "computation_failed", "version": "v1", "id": "*"}),
+                },
+              },
               result_computed: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_gate_state", "action": "result_computed", "version": "v1", "id": "*"}),
@@ -172,6 +189,11 @@ export const events = {
               },
             },
             has_task_state: {
+              computation_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_task_state", "action": "computation_failed", "version": "v1", "id": "*"}),
+                },
+              },
               result_computed: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "edge", "entity": "has_task_state", "action": "result_computed", "version": "v1", "id": "*"}),
@@ -193,6 +215,11 @@ export const events = {
           },
           snapshot: {
             data: {
+              computation_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "data", "action": "computation_failed", "version": "v1", "id": "*"}),
+                },
+              },
               result: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "data", "action": "result", "version": "v1", "id": "*"}),
@@ -205,6 +232,11 @@ export const events = {
               },
             },
             gate: {
+              computation_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "gate", "action": "computation_failed", "version": "v1", "id": "*"}),
+                },
+              },
               result: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "gate", "action": "result", "version": "v1", "id": "*"}),
@@ -219,6 +251,11 @@ export const events = {
               },
             },
             task: {
+              computation_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "task", "action": "computation_failed", "version": "v1", "id": "*"}),
+                },
+              },
               result: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "domain", "tenant": "*", "context": "*", "channel": "snapshot", "entity": "task", "action": "result", "version": "v1", "id": "*"}),
@@ -274,6 +311,11 @@ export const events = {
               compute_function: {
                 v1: {
                   "*": subjectPatch({"env": "*", "ns": "gateway", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function", "version": "v1", "id": "*"}),
+                },
+              },
+              compute_function_failed: {
+                v1: {
+                  "*": subjectPatch({"env": "*", "ns": "gateway", "tenant": "*", "context": "function_result", "channel": "evt", "entity": "component", "action": "compute_function_failed", "version": "v1", "id": "*"}),
                 },
               },
             },

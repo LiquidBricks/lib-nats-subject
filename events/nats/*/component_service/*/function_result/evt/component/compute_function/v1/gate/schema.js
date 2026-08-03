@@ -6,11 +6,15 @@ export const schema = {
   "properties": {
     "data": {
       "type": "object",
-      "required": ["instanceId", "name", "result"],
+      "required": ["instanceId", "name", "type", "result", "status"],
       "properties": {
         "instanceId": { "type": "string", "minLength": 1 },
         "name": { "type": "string", "minLength": 1 },
-        "result": {}
+        "type": { "const": "gate" },
+        "result": {},
+        "status": { "const": "provided" },
+        "stateEdgeStatus": { "const": "provided" },
+        "error": false
       },
       "additionalProperties": true
     }

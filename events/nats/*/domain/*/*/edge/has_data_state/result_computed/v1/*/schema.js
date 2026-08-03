@@ -14,6 +14,8 @@ export const schema = {
         "type",
         "name",
         "result",
+        "status",
+        "stateEdgeStatus",
         "updatedAt"
       ],
       "properties": {
@@ -26,18 +28,15 @@ export const schema = {
         "name": { "type": "string", "minLength": 1 },
         "result": {},
         "resultValue": { "type": "string" },
-        "status": { "type": "string", "minLength": 1 },
-        "stateEdgeStatus": { "type": "string", "minLength": 1 },
+        "status": { "const": "provided" },
+        "stateEdgeStatus": { "const": "provided" },
+        "error": false,
         "updatedAt": {
           "type": "string",
           "format": "date-time",
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
         }
       },
-      "anyOf": [
-        { "required": ["stateEdgeStatus"] },
-        { "required": ["status"] }
-      ],
       "additionalProperties": true
     }
   },
