@@ -3,6 +3,7 @@ import { events as child1Events, meta as child1Meta } from './has_data_state/ind
 import { events as child2Events, meta as child2Meta } from './has_gate_state/index.js'
 import { events as child3Events, meta as child3Meta } from './has_task_state/index.js'
 import { events as child4Events, meta as child4Meta } from './injects_into/index.js'
+import { events as child5Events, meta as child5Meta } from './has_log/index.js'
 
 export const events = {
   ">": child0Events,
@@ -10,6 +11,7 @@ export const events = {
   "has_gate_state": child2Events,
   "has_task_state": child3Events,
   "injects_into": child4Events,
+  "has_log": child5Events,
 }
 
 export const meta = {
@@ -18,4 +20,5 @@ export const meta = {
   "has_gate_state": child2Meta,
   "has_task_state": child3Meta,
   "injects_into": child4Meta,
+  "has_log": child5Meta,
 }
